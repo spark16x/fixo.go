@@ -66,7 +66,7 @@ class _MyHomePageState extends State<MyHomePage> {
         title: Text(widget.title),
       ),
       body: Center(
-        child: Text('Welcome');
+        child: Text('Welcome')
       ),
     );
   }
