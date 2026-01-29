@@ -11,7 +11,6 @@ class SplashScreen extends StatefulWidget {
 
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
-
   late AnimationController _controller;
   late Animation<double> _fade;
   late Animation<double> _scale;
@@ -39,10 +38,12 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
+    // Automatically navigate to the home page after a delay
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacementNamed(context, MaterialPageRoute(
-          builder: (_) => const MyHomePage(title: 'Home'),
-        ));
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MyHomePage(title: 'Home')),
+      );
     });
   }
 
