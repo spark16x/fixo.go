@@ -1,0 +1,40 @@
+name: Create Next App
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  create:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Create Next.js app in web folder
+        run: |
+          npx create-next-app@latest web \
+            --js \
+            --tailwind \
+            --eslint \
+            --app \
+            --src-dir \
+            --use-npm \
+            --no-git \
+            --yes
+
+      - name: Commit generated app
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add web
+          git commit -m "Auto-create Next.js app in /web"
+          git push
