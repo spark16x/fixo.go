@@ -16,8 +16,8 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
@@ -29,12 +29,14 @@ jobs:
 
       - name: Install dependencies
         run: flutter pub get
+        working-directory: app
 
       - name: Build APK
         run: flutter build apk --release
+        working-directory: app
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: app-release-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
+          path: app/build/app/outputs/flutter-apk/app-release.apk
