@@ -1,65 +1,129 @@
-import Image from "next/image";
-
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.js file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <main>
+
+      {/* NAV */}
+      <nav className="flex justify-between items-center px-6 py-5 max-w-6xl mx-auto">
+        <div className="text-xl font-bold tracking-wide">FIXO.GO</div>
+        <button className="bg-blue-600 px-5 py-2 rounded-lg text-sm font-semibold">
+          Early Access
+        </button>
+      </nav>
+
+      {/* HERO */}
+      <section className="text-center px-6 py-24 max-w-4xl mx-auto">
+        <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+          When your vehicle stops — <br />
+          help starts instantly.
+        </h1>
+
+        <p className="text-gray-400 text-lg mb-10">
+          One-tap SOS roadside assistance with live mechanic tracking.
+        </p>
+
+        <div className="flex gap-4 justify-center">
+          <button className="bg-red-600 hover:bg-red-500 px-7 py-4 rounded-xl font-semibold">
+            Get Early Access
+          </button>
+          <button className="bg-zinc-800 px-7 py-4 rounded-xl font-semibold border border-zinc-700">
+            Join as Mechanic
+          </button>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+      </section>
+
+      {/* FEATURES */}
+      <section className="grid md:grid-cols-3 gap-8 px-6 py-20 max-w-6xl mx-auto">
+        {[
+          ["🚨", "Instant SOS", "Tap once and request help"],
+          ["📍", "Smart Matching", "Nearest mechanic auto-assigned"],
+          ["🛰️", "Live Tracking", "Real-time ETA & movement"],
+        ].map(([icon, title, text]) => (
+          <div key={title} className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
+            <div className="text-3xl mb-4">{icon}</div>
+            <h3 className="font-semibold mb-2">{title}</h3>
+            <p className="text-gray-400 text-sm">{text}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="px-6 py-24 bg-zinc-950 text-center">
+        <h2 className="text-4xl font-bold mb-14">How It Works</h2>
+
+        <div className="grid md:grid-cols-3 gap-10 max-w-5xl mx-auto">
+          <Step n="1" t="Tap SOS" d="Send instant breakdown alert" />
+          <Step n="2" t="Get Matched" d="Nearby mechanic accepts" />
+          <Step n="3" t="Track Arrival" d="Live map tracking" />
         </div>
-      </main>
+      </section>
+
+      {/* MECHANIC SECTION */}
+      <section className="px-6 py-24 max-w-5xl mx-auto text-center">
+        <h2 className="text-4xl font-bold mb-6">
+          Built for Mechanics Too
+        </h2>
+
+        <p className="text-gray-400 mb-10">
+          Get nearby jobs. Go online anytime. Grow your local income.
+        </p>
+
+        <button className="bg-blue-600 px-8 py-4 rounded-xl font-semibold">
+          Become Service Partner
+        </button>
+      </section>
+
+      {/* TRUST */}
+      <section className="px-6 py-20 grid md:grid-cols-4 gap-6 max-w-6xl mx-auto text-center">
+        {["OTP Login", "Verified Mechanics", "Live Location", "Privacy Safe"].map(x => (
+          <div key={x} className="bg-zinc-900 p-6 rounded-xl border border-zinc-800 text-sm">
+            {x}
+          </div>
+        ))}
+      </section>
+
+      {/* WAITLIST */}
+      <section className="px-6 py-24 bg-zinc-950">
+        <div className="max-w-xl mx-auto text-center">
+          <h2 className="text-4xl font-bold mb-8">
+            Join Early Access
+          </h2>
+
+          <form className="space-y-4">
+            <Input placeholder="Name" />
+            <Input placeholder="Phone" />
+            <Input placeholder="City" />
+
+            <button className="w-full bg-red-600 py-4 rounded-xl font-semibold">
+              Join Waitlist
+            </button>
+          </form>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer className="text-center text-gray-500 py-12 text-sm">
+        © {new Date().getFullYear()} FIXO.GO
+      </footer>
+
+    </main>
+  );
+}
+
+function Step({ n, t, d }) {
+  return (
+    <div>
+      <div className="text-blue-500 font-bold mb-3">Step {n}</div>
+      <h3 className="font-semibold mb-2">{t}</h3>
+      <p className="text-gray-400 text-sm">{d}</p>
     </div>
+  );
+}
+
+function Input(props) {
+  return (
+    <input
+      {...props}
+      className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800"
+    />
   );
 }
