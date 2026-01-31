@@ -22,7 +22,7 @@ export default function Home() {
     >
   <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
     When your vehicle stops —
-    <br /> help starts instantly.
+    <br /> Fixo.go starts instantly.
    </h1>
 
   <p className="text-gray-400 text-lg mb-10">
