@@ -12,9 +12,16 @@ const grotesk = Space_Grotesk({
 });
 
 export const metadata = {
-  title: "FIXO.GO — Roadside Assistance",
-  description: "Instant SOS roadside help",
+  title: "FIXO.GO — Instant Roadside Assistance App",
+  description:
+    "FIXO.GO connects drivers to nearby mechanics instantly with SOS and live tracking.",
+  openGraph: {
+    title: "FIXO.GO",
+    description: "One-tap roadside help",
+    type: "website",
+  },
 };
+
 
 export default function RootLayout({ children }) {
   return (
@@ -24,6 +31,20 @@ export default function RootLayout({ children }) {
       </head>
       <body className={`${inter.variable} ${grotesk.variable}`}>
         {children}
+        <script
+  type="application/ld+json"
+  dangerouslySetInnerHTML={{
+    __html: JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "MobileApplication",
+      name: "FIXO.GO",
+      applicationCategory: "TravelApplication",
+      operatingSystem: "Android",
+      description: "Emergency roadside assistance app",
+    }),
+  }}
+/>
+
       </body>
     </html>
   );

@@ -1,3 +1,6 @@
+"use client";
+import { motion } from "framer-motion";
+
 export default function Home() {
   return (
     <main>
@@ -11,25 +14,54 @@ export default function Home() {
       </nav>
 
       {/* HERO */}
-      <section className="text-center px-6 py-24 max-w-4xl mx-auto">
-        <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-          When your vehicle stops — <br />
-          help starts instantly.
-        </h1>
+    <motion.section
+      initial={{ opacity: 0, y: 40 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.7 }}
+      className="text-center px-6 py-24 max-w-4xl mx-auto"
+    >
+  <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
+    When your vehicle stops —
+    <br /> help starts instantly.
+   </h1>
 
-        <p className="text-gray-400 text-lg mb-10">
-          One-tap SOS roadside assistance with live mechanic tracking.
-        </p>
+  <p className="text-gray-400 text-lg mb-10">
+    One-tap SOS roadside assistance with live mechanic tracking.
+  </p>
 
-        <div className="flex gap-4 justify-center">
-          <button className="bg-red-600 hover:bg-red-500 px-7 py-4 rounded-xl font-semibold">
-            Get Early Access
-          </button>
-          <button className="bg-zinc-800 px-7 py-4 rounded-xl font-semibold border border-zinc-700">
-            Join as Mechanic
-          </button>
-        </div>
-      </section>
+  <div className="flex gap-4 justify-center">
+    <button className="bg-red-600 px-7 py-4 rounded-xl font-semibold">
+      Get Early Access
+    </button>
+    <button className="bg-zinc-800 px-7 py-4 rounded-xl border border-zinc-700">
+      Join as Mechanic
+    </button>
+  </div>
+</motion.section>
+
+    {/* About mobile app */}
+    <section className="px-6 py-24 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
+  <div>
+    <h2 className="text-4xl font-bold mb-6">
+      Built for Real Road Emergencies
+    </h2>
+
+    <ul className="space-y-4 text-gray-400">
+      <li>• One-tap SOS request</li>
+      <li>• Real-time mechanic tracking</li>
+      <li>• Car & bike support</li>
+      <li>• OTP login only — no passwords</li>
+      <li>• Dark-mode emergency UI</li>
+    </ul>
+  </div>
+
+  <div className="bg-zinc-900 rounded-2xl p-10 border border-zinc-800 text-center">
+    <div className="text-6xl mb-4">📱</div>
+    <p className="text-gray-400">
+      Android launch first. iOS next phase.
+    </p>
+  </div>
+</section>
 
       {/* FEATURES */}
       <section className="grid md:grid-cols-3 gap-8 px-6 py-20 max-w-6xl mx-auto">
