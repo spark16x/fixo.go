@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'home.dart';
 
 class OtpScreen extends StatefulWidget {
-  const OtpScreen({super.key});
+  final String verificationId;
+  const OtpScreen({super.key, required this.verificationId});
 
   @override
   State<OtpScreen> createState() => _OtpScreenState();
@@ -75,13 +76,23 @@ class _OtpScreenState extends State<OtpScreen> {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: () {
-                  // later: Firebase OTP verify
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => const HomeScreen()),
-                  );
-                },
+               onPressed: () async {
+                 String code = _controllers.map((c) => c.text).join();
+                 final cred = PhoneAuthProvider.credential(
+                   verificationId: widget.verificationId,
+                   smsCode: code,
+                   
+                 );
+                 
+                 await FirebaseAuth.instance.signInWithCredential(cred);
+                 
+                 Navigator.pushReplacement(
+                   context,
+                   MaterialPageRoute(builder: (_) => const HomeScreen()),
+                   
+                 );
+                 
+               },
                 child: const Text(
                   'Verify & Continue',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),

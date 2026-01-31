@@ -19,22 +19,30 @@ jobs:
         with:
           node-version: 20
 
-      - name: Create Next.js app in web folder
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Flutter doctor
+        run: flutter doctor -v
+
+      - name: ADD firebase
+        working-directory: app
         run: |
-          npx create-next-app@latest web \
-            --js \
-            --tailwind \
-            --eslint \
-            --app \
-            --src-dir \
-            --use-npm \
-            --no-git \
-            --yes
+          flutter pub add firebase_core 
+          flutter pub add firebase_auth
 
       - name: Commit generated app
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add web
-          git commit -m "Auto-create Next.js app in /web"
+          git add app
+          git commit -m "add dev"
           git push

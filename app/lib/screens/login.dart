@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'otp.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
@@ -59,11 +60,31 @@ class LoginScreen extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14),
                   ),
                 ),
-                onPressed: () {
-                  Navigator.pushReplacement(
-                           context,
-                          MaterialPageRoute(builder: (context) => const OtpScreen()),
+                onPressed: () async {
+                  await FirebaseAuth.instance.verifyPhoneNumber(
+                    phoneNumber: "+91$phone", // get from controller
+                    verificationCompleted: (credential) async {
+                      await FirebaseAuth.instance.signInWithCredential(credential);
+                      
+                    },
+                    verificationFailed: (e) {
+                      debugPrint(e.message);
+                      
+                    },
+                    codeSent: (verificationId, _) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => OtpScreen(verificationId: verificationId)
+                          
+                        ),
+                        
+                      );
+                      
+                    },
+                    codeAutoRetrievalTimeout: (_) {},
+                    
                   );
+                  
                 },
                 child: const Text(
                   'Continue',
