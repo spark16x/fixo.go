@@ -4,7 +4,8 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 class LoginScreen extends StatelessWidget {
   const LoginScreen({super.key});
-
+  final phoneController = TextEditingController() ;
+  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,6 +32,7 @@ class LoginScreen extends StatelessWidget {
 
             // Phone input
             TextField(
+              controller: phoneController
               keyboardType: TextInputType.phone,
               style: const TextStyle(color: Colors.white),
               decoration: InputDecoration(
@@ -61,6 +63,7 @@ class LoginScreen extends StatelessWidget {
                   ),
                 ),
                 onPressed: () async {
+                  final phone = phoneController.text
                   await FirebaseAuth.instance.verifyPhoneNumber(
                     phoneNumber: "+91$phone", // get from controller
                     verificationCompleted: (credential) async {
