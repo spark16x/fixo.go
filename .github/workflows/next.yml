@@ -36,6 +36,7 @@ jobs:
       - name: ADD firebase
         working-directory: app
         run: |
+         flutter pub outdated
          flutter pub upgrade
 
       - name: Commit generated app
