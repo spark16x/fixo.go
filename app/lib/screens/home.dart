@@ -23,9 +23,9 @@ class _HomeScreenState extends State<HomeScreen> {
           // 🌍 OpenStreetMap Map Widget
           FlutterMap(
             options: MapOptions(
-              center: _initialPos,
-              zoom: 14,
-            ),
+   initialCenter: _initialPos,
+    zoom: 14,
+),
             children: [
               TileLayer(
                 urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
