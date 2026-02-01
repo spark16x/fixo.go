@@ -36,8 +36,8 @@ jobs:
       - name: ADD firebase
         working-directory: app
         run: |
-          flutter pub add google_maps_flutter
-          flutter pub add geolocator
+          flutter pub add flutter_map
+          flutter pub add latlong2
 
       - name: Commit generated app
         run: |
