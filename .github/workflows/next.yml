@@ -36,8 +36,8 @@ jobs:
       - name: ADD firebase
         working-directory: app
         run: |
-          flutter pub add firebase_core 
-          flutter pub add firebase_auth
+          flutter pub add google_maps_flutter
+          flutter pub add geolocator
 
       - name: Commit generated app
         run: |

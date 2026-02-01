@@ -1,7 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  GoogleMapController? _mapController;
+  LatLng _center = const LatLng(28.6139, 77.2090); // fallback
+
+  @override
+  void initState() {
+    super.initState();
+    _getLocation();
+  }
+
+  Future<void> _getLocation() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) return;
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+    }
+
+    final pos = await Geolocator.getCurrentPosition();
+
+    setState(() {
+      _center = LatLng(pos.latitude, pos.longitude);
+    });
+
+    _mapController?.animateCamera(
+      CameraUpdate.newLatLngZoom(_center, 16),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -9,19 +45,20 @@ class HomeScreen extends StatelessWidget {
       backgroundColor: const Color(0xFF0B0B0B),
       body: Stack(
         children: [
-
-          // Map placeholder (replace with GoogleMap later)
-          Container(
-            color: Colors.black,
-            child: const Center(
-              child: Text(
-                'Map View (Coming Next)',
-                style: TextStyle(color: Colors.white38),
-              ),
+          /// ✅ REAL MAP
+          GoogleMap(
+            initialCameraPosition: CameraPosition(
+              target: _center,
+              zoom: 14,
             ),
+            myLocationEnabled: true,
+            myLocationButtonEnabled: false,
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
           ),
 
-          // Top search bar
+          /// Top search bar
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -46,7 +83,7 @@ class HomeScreen extends StatelessWidget {
             ),
           ),
 
-          // Bottom action panel
+          /// Bottom panel (unchanged)
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -60,7 +97,6 @@ class HomeScreen extends StatelessWidget {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-
                   Container(
                     width: 40,
                     height: 4,
@@ -98,9 +134,7 @@ class HomeScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {
-                        // next: issue selection screen
-                      },
+                      onPressed: () {},
                       child: const Text(
                         "Request Help",
                         style: TextStyle(
