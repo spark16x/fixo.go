@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -10,34 +10,8 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  GoogleMapController? _mapController;
-  LatLng _center = const LatLng(28.6139, 77.2090); // fallback
 
-  @override
-  void initState() {
-    super.initState();
-    _getLocation();
-  }
-
-  Future<void> _getLocation() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) return;
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-
-    final pos = await Geolocator.getCurrentPosition();
-
-    setState(() {
-      _center = LatLng(pos.latitude, pos.longitude);
-    });
-
-    _mapController?.animateCamera(
-      CameraUpdate.newLatLngZoom(_center, 16),
-    );
-  }
+  final LatLng _initialPos = LatLng(28.6139, 77.2090);
 
   @override
   Widget build(BuildContext context) {
@@ -45,20 +19,22 @@ class _HomeScreenState extends State<HomeScreen> {
       backgroundColor: const Color(0xFF0B0B0B),
       body: Stack(
         children: [
-          /// ✅ REAL MAP
-          GoogleMap(
-            initialCameraPosition: CameraPosition(
-              target: _center,
+
+          // 🌍 OpenStreetMap Map Widget
+          FlutterMap(
+            options: MapOptions(
+              center: _initialPos,
               zoom: 14,
             ),
-            myLocationEnabled: true,
-            myLocationButtonEnabled: false,
-            onMapCreated: (controller) {
-              _mapController = controller;
-            },
+            children: [
+              TileLayer(
+                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                subdomains: const ['a', 'b', 'c'],
+              ),
+            ],
           ),
 
-          /// Top search bar
+          // Top search bar
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
@@ -83,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          /// Bottom panel (unchanged)
+          // Bottom action panel (unchanged)
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -106,7 +82,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                   ),
-
                   const Text(
                     "Need Roadside Help?",
                     style: TextStyle(
@@ -114,16 +89,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       fontWeight: FontWeight.bold,
                     ),
                   ),
-
                   const SizedBox(height: 8),
-
                   const Text(
                     "Request a nearby mechanic instantly",
                     style: TextStyle(color: Colors.white60),
                   ),
-
                   const SizedBox(height: 20),
-
                   SizedBox(
                     width: double.infinity,
                     height: 54,
@@ -144,12 +115,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
-
                   const SizedBox(height: 12),
                 ],
               ),
             ),
           ),
+
         ],
       ),
     );
