@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:truecaller_sdk/truecaller_sdk.dart';
@@ -15,27 +17,106 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
 
   final phoneController = TextEditingController();
+
   bool loading = false;
+
+  StreamSubscription? _tcStream;
+
+  String? _codeVerifier;
+  String? _oauthState;
+
+  // ================= INIT =================
 
   @override
   void initState() {
     super.initState();
 
-    TruecallerSdk.initializeSDK(
-      sdkOptions: TruecallerSdkScope.SDK_OPTION_WITH_OTP,
-      consentMode: TruecallerSdkScope.CONSENT_MODE_POPUP,
-      loginTextPrefix: TruecallerSdkScope.LOGIN_TEXT_PREFIX_TO_GET_STARTED,
-      loginTextSuffix: TruecallerSdkScope.LOGIN_TEXT_SUFFIX_PLEASE_LOGIN,
+    _initTruecaller();
+    _listenTruecaller();
+  }
+
+  void _initTruecaller() {
+    TcSdk.initializeSDK(
+      sdkOption: TcSdkOptions.OPTION_VERIFY_ALL_USERS,
     );
+  }
+
+  // ================= TRUECALLER LISTENER =================
+
+  void _listenTruecaller() {
+
+    _tcStream = TcSdk.streamCallbackData.listen((res) async {
+
+      switch (res.result) {
+
+        case TcSdkCallbackResult.success:
+
+          final authCode = res.tcOAuthData!.authorizationCode;
+
+          debugPrint("AuthCode: $authCode");
+
+          // 👉 Normally: Send to backend → get token
+          // For MVP: Trust login
+
+          _goHome();
+          break;
+
+        case TcSdkCallbackResult.verification:
+
+          _show("Manual verification required");
+          break;
+
+        case TcSdkCallbackResult.failure:
+
+          _show(res.error?.message ?? "Truecaller Failed");
+          break;
+
+        default:
+          break;
+      }
+    });
+  }
+
+  // ================= START TRUECALLER =================
+
+  Future<void> startTruecallerLogin() async {
+
+    final usable = await TcSdk.isOAuthFlowUsable;
+
+    if (!usable) {
+      _show("Truecaller not available");
+      return;
+    }
+
+    _oauthState = DateTime.now().millisecondsSinceEpoch.toString();
+
+    TcSdk.setOAuthState(_oauthState!);
+
+    TcSdk.setOAuthScopes(['profile', 'phone', 'openid']);
+
+    _codeVerifier = await TcSdk.generateRandomCodeVerifier;
+
+    final challenge =
+        await TcSdk.generateCodeChallenge(_codeVerifier!);
+
+    if (challenge == null) {
+      _show("Device not supported");
+      return;
+    }
+
+    TcSdk.setCodeChallenge(challenge);
+
+    TcSdk.getAuthorizationCode;
   }
 
   // ================= OTP =================
 
   Future<void> sendOtp() async {
+
     final phone = phoneController.text.trim();
 
     if (phone.length != 10) {
-      _msg("Invalid number");
+      _show("Invalid number");
       return;
     }
 
@@ -51,7 +132,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       verificationFailed: (e) {
         setState(() => loading = false);
-        _msg(e.message ?? "OTP Failed");
+        _show(e.message ?? "OTP failed");
       },
 
       codeSent: (id, _) {
@@ -71,19 +152,6 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ================= TRUECALLER =================
-
-  Future<void> loginTruecaller() async {
-
-    final res = await TruecallerSdk.getProfile();
-
-    if (res['success'] == true) {
-      _goHome();
-    } else {
-      _msg("Truecaller cancelled");
-    }
-  }
-
   // ================= HELPERS =================
 
   void _goHome() {
@@ -95,14 +163,17 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _msg(String s) {
+  void _show(String s) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(s)));
   }
 
+  // ================= DISPOSE =================
+
   @override
   void dispose() {
     phoneController.dispose();
+    _tcStream?.cancel();
     super.dispose();
   }
 
@@ -133,13 +204,13 @@ class _LoginScreenState extends State<LoginScreen> {
             const SizedBox(height: 10),
 
             const Text(
-              "Continue with phone or Truecaller",
+              "Continue with Truecaller or OTP",
               style: TextStyle(color: Colors.white60),
             ),
 
             const SizedBox(height: 30),
 
-            // Phone field
+            // Phone
             TextField(
               controller: phoneController,
               maxLength: 10,
@@ -177,14 +248,15 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 20),
 
-            // Truecaller
+            // TRUECALLER
             SizedBox(
               width: double.infinity,
               height: 52,
 
-              child: OutlinedButton(
-                onPressed: loginTruecaller,
-                child: const Text("Login with Truecaller"),
+              child: OutlinedButton.icon(
+                icon: const Icon(Icons.verified_user),
+                label: const Text("Login with Truecaller"),
+                onPressed: startTruecallerLogin,
               ),
             ),
           ],
