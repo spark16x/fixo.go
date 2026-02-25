@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:truecaller_sdk/truecaller_sdk.dart';
+
 import 'otp.dart';
+import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -10,8 +13,92 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final TextEditingController phoneController = TextEditingController();
-  bool isLoading = false;
+
+  final phoneController = TextEditingController();
+  bool loading = false;
+
+  @override
+  void initState() {
+    super.initState();
+
+    TruecallerSdk.initializeSDK(
+      sdkOptions: TruecallerSdkScope.SDK_OPTION_WITH_OTP,
+      consentMode: TruecallerSdkScope.CONSENT_MODE_POPUP,
+      loginTextPrefix: TruecallerSdkScope.LOGIN_TEXT_PREFIX_TO_GET_STARTED,
+      loginTextSuffix: TruecallerSdkScope.LOGIN_TEXT_SUFFIX_PLEASE_LOGIN,
+    );
+  }
+
+  // ================= OTP =================
+
+  Future<void> sendOtp() async {
+    final phone = phoneController.text.trim();
+
+    if (phone.length != 10) {
+      _msg("Invalid number");
+      return;
+    }
+
+    setState(() => loading = true);
+
+    await FirebaseAuth.instance.verifyPhoneNumber(
+      phoneNumber: "+91$phone",
+
+      verificationCompleted: (cred) async {
+        await FirebaseAuth.instance.signInWithCredential(cred);
+        _goHome();
+      },
+
+      verificationFailed: (e) {
+        setState(() => loading = false);
+        _msg(e.message ?? "OTP Failed");
+      },
+
+      codeSent: (id, _) {
+        setState(() => loading = false);
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OtpScreen(verificationId: id),
+          ),
+        );
+      },
+
+      codeAutoRetrievalTimeout: (_) {
+        setState(() => loading = false);
+      },
+    );
+  }
+
+  // ================= TRUECALLER =================
+
+  Future<void> loginTruecaller() async {
+
+    final res = await TruecallerSdk.getProfile();
+
+    if (res['success'] == true) {
+      _goHome();
+    } else {
+      _msg("Truecaller cancelled");
+    }
+  }
+
+  // ================= HELPERS =================
+
+  void _goHome() {
+    if (!mounted) return;
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (_) => const HomeScreen()),
+    );
+  }
+
+  void _msg(String s) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(s)));
+  }
 
   @override
   void dispose() {
@@ -19,85 +106,49 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
-  Future<void> sendOtp() async {
-    final phone = phoneController.text.trim();
-
-    if (phone.length != 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid 10-digit phone number')),
-      );
-      return;
-    }
-
-    setState(() => isLoading = true);
-
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: '+91$phone',
-      verificationCompleted: (credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
-      },
-      verificationFailed: (e) {
-        setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message ?? 'Verification failed')),
-        );
-      },
-      codeSent: (verificationId, _) {
-        setState(() => isLoading = false);
-
-        if (!context.mounted) return;
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => OtpScreen(verificationId: verificationId),
-          ),
-        );
-      },
-      codeAutoRetrievalTimeout: (_) {
-        setState(() => isLoading = false);
-      },
-    );
-  }
+  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0B),
+      backgroundColor: Colors.black,
+
       body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
+        padding: const EdgeInsets.all(24),
+
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
+
           children: [
+
             const Text(
-              'Login',
+              "Login",
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
-                color: Colors.white,
               ),
             ),
-            const SizedBox(height: 8),
+
+            const SizedBox(height: 10),
+
             const Text(
-              'Enter your phone number to continue',
+              "Continue with phone or Truecaller",
               style: TextStyle(color: Colors.white60),
             ),
+
             const SizedBox(height: 30),
 
+            // Phone field
             TextField(
               controller: phoneController,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white),
               maxLength: 10,
+              keyboardType: TextInputType.phone,
+
               decoration: InputDecoration(
-                counterText: '',
-                prefixText: '+91 ',
-                prefixStyle: const TextStyle(color: Colors.white),
-                hintText: 'Phone Number',
-                hintStyle: const TextStyle(color: Colors.white38),
+                prefixText: "+91 ",
                 filled: true,
-                fillColor: const Color(0xFF1A1A1A),
+                fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide.none,
@@ -105,28 +156,35 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
+            // OTP
             SizedBox(
               width: double.infinity,
               height: 52,
+
               child: ElevatedButton(
-                onPressed: isLoading ? null : sendOtp,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text(
-                        'Continue',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
+                onPressed: loading ? null : sendOtp,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text("Continue with OTP"),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            const Center(child: Text("OR")),
+
+            const SizedBox(height: 20),
+
+            // Truecaller
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+
+              child: OutlinedButton(
+                onPressed: loginTruecaller,
+                child: const Text("Login with Truecaller"),
               ),
             ),
           ],
