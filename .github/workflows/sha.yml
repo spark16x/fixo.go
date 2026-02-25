@@ -1,7 +1,39 @@
-- name: Get Debug SHA-1
-  run: |
-    keytool -list -v \
-    -keystore ~/.android/debug.keystore \
-    -alias androiddebugkey \
-    -storepass android \
-    -keypass android
+name: Get Debug SHA-1
+
+on:
+  workflow_dispatch:   # Run manually
+
+jobs:
+  sha1:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Generate Debug Keystore
+        run: |
+          mkdir -p ~/.android
+          keytool -genkeypair \
+            -alias androiddebugkey \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -keystore ~/.android/debug.keystore \
+            -storepass android \
+            -keypass android \
+            -dname "CN=Android,O=Android,C=US"
+
+      - name: Get Debug SHA-1
+        run: |
+          keytool -list -v \
+          -keystore ~/.android/debug.keystore \
+          -alias androiddebugkey \
+          -storepass android \
+          -keypass android
