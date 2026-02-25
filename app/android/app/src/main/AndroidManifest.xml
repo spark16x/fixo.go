@@ -25,7 +25,7 @@
             android:resource="@style/NormalTheme" />
             <meta-data
     android:name="com.truecaller.android.sdk.ClientId"
-    android:value="YOUR_CLIENT_ID"/>
+    android:value="h6xsiskeftf36ssbqgqqovm934vcw0fdotx18lpcjea"/>
            
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
