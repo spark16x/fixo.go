@@ -1,4 +1,4 @@
-name: Create Next App
+name: Pub
 
 on:
   workflow_dispatch:
@@ -33,10 +33,10 @@ jobs:
       - name: Flutter doctor
         run: flutter doctor -v
 
-      - name: ADD firebase
+      - name: update all dep
         working-directory: app
         run: |
-         flutter pub add truecaller_sdk
+         flutter pub upgrade
 
       - name: Commit generated app
         run: |
