@@ -36,8 +36,7 @@ jobs:
       - name: ADD firebase
         working-directory: app
         run: |
-         flutter pub outdated
-         flutter pub upgrade
+         flutter pub add truecaller_sdk
 
       - name: Commit generated app
         run: |
