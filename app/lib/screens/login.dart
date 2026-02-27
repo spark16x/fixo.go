@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:truecaller_sdk/truecaller_sdk.dart';
@@ -30,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-
     _initTruecaller();
     _listenTruecaller();
   }
@@ -41,34 +39,34 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ================= TRUECALLER LISTENER =================
+  // ================= TRUECALLER CALLBACK =================
 
   void _listenTruecaller() {
-
     _tcStream = TcSdk.streamCallbackData.listen((res) async {
 
       switch (res.result) {
 
         case TcSdkCallbackResult.success:
 
-          final authCode = res.tcOAuthData!.authorizationCode;
+          final authCode =
+              res.tcOAuthData?.authorizationCode;
 
-          debugPrint("AuthCode: $authCode");
+          debugPrint("Truecaller AuthCode: $authCode");
 
-          // 👉 Normally: Send to backend → get token
-          // For MVP: Trust login
-
+          // Normally send authCode to backend
           _goHome();
           break;
 
         case TcSdkCallbackResult.verification:
-
           _show("Manual verification required");
           break;
 
         case TcSdkCallbackResult.failure:
-
           _show(res.error?.message ?? "Truecaller Failed");
+          break;
+
+        case TcSdkCallbackResult.closed:
+          _show("User closed Truecaller");
           break;
 
         default:
@@ -84,17 +82,23 @@ class _LoginScreenState extends State<LoginScreen> {
     final usable = await TcSdk.isOAuthFlowUsable;
 
     if (!usable) {
-      _show("Truecaller not available");
+      _show("Truecaller not installed or supported");
       return;
     }
 
-    _oauthState = DateTime.now().millisecondsSinceEpoch.toString();
+    _oauthState =
+        DateTime.now().millisecondsSinceEpoch.toString();
 
     TcSdk.setOAuthState(_oauthState!);
 
-    TcSdk.setOAuthScopes(['profile', 'phone', 'openid']);
+    TcSdk.setOAuthScopes([
+      'profile',
+      'phone',
+      'openid'
+    ]);
 
-    _codeVerifier = await TcSdk.generateRandomCodeVerifier;
+    _codeVerifier =
+        await TcSdk.generateRandomCodeVerifier;
 
     final challenge =
         await TcSdk.generateCodeChallenge(_codeVerifier!);
@@ -106,10 +110,11 @@ class _LoginScreenState extends State<LoginScreen> {
 
     TcSdk.setCodeChallenge(challenge);
 
-    TcSdk.getAuthorizationCode;
+    // ✅ IMPORTANT (you missed brackets)
+    TcSdk.getAuthorizationCode();
   }
 
-  // ================= OTP =================
+  // ================= OTP LOGIN =================
 
   Future<void> sendOtp() async {
 
@@ -159,7 +164,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (_) => const HomeScreen()),
+      MaterialPageRoute(
+        builder: (_) => const HomeScreen(),
+      ),
     );
   }
 
@@ -174,6 +181,10 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
+
+    // ✅ Important cleanup
+    TcSdk.clear();
+
     super.dispose();
   }
 
@@ -183,7 +194,6 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
-
       body: Padding(
         padding: const EdgeInsets.all(24),
 
@@ -198,6 +208,7 @@ class _LoginScreenState extends State<LoginScreen> {
               style: TextStyle(
                 fontSize: 28,
                 fontWeight: FontWeight.bold,
+                color: Colors.white,
               ),
             ),
 
@@ -210,14 +221,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 30),
 
-            // Phone
             TextField(
               controller: phoneController,
               maxLength: 10,
               keyboardType: TextInputType.phone,
+              style: const TextStyle(color: Colors.white),
 
               decoration: InputDecoration(
                 prefixText: "+91 ",
+                prefixStyle:
+                    const TextStyle(color: Colors.white),
                 filled: true,
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
@@ -229,11 +242,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 20),
 
-            // OTP
             SizedBox(
               width: double.infinity,
               height: 52,
-
               child: ElevatedButton(
                 onPressed: loading ? null : sendOtp,
                 child: loading
@@ -244,15 +255,18 @@ class _LoginScreenState extends State<LoginScreen> {
 
             const SizedBox(height: 20),
 
-            const Center(child: Text("OR")),
+            const Center(
+              child: Text(
+                "OR",
+                style: TextStyle(color: Colors.white),
+              ),
+            ),
 
             const SizedBox(height: 20),
 
-            // TRUECALLER
             SizedBox(
               width: double.infinity,
               height: 52,
-
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.verified_user),
                 label: const Text("Login with Truecaller"),
