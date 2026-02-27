@@ -1,22 +1,25 @@
 name: Get Debug SHA-1
 
 on:
-  workflow_dispatch:   # Run manually
+  workflow_dispatch:   # Run manually from Actions tab
 
 jobs:
   sha1:
     runs-on: ubuntu-latest
 
     steps:
+      # 1️⃣ Checkout repository
       - name: Checkout Repo
         uses: actions/checkout@v4
 
+      # 2️⃣ Setup Java (required for keytool)
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
+          distribution: temurin
           java-version: '17'
 
+      # 3️⃣ Create Android debug keystore
       - name: Generate Debug Keystore
         run: |
           mkdir -p ~/.android
@@ -28,20 +31,22 @@ jobs:
             -keystore ~/.android/debug.keystore \
             -storepass android \
             -keypass android \
-            -dname "CN=Android,O=Android,C=US"
+            -dname "CN=Android Debug,O=Android,C=US"
 
+      # 4️⃣ Extract SHA fingerprint into file
       - name: Get Debug SHA-1
         run: |
           keytool -list -v \
-          -keystore ~/.android/debug.keystore \
-          -alias androiddebugkey \
-          -storepass android \
-          -keypass android
+            -keystore ~/.android/debug.keystore \
+            -alias androiddebugkey \
+            -storepass android \
+            -keypass android > SHA1.txt
 
-      - name: Commit
+      # 5️⃣ Commit SHA file back to repo
+      - name: Commit SHA File
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git add .
-          git commit -m "add sha fingerprint"
+          git add SHA1.txt
+          git commit -m "Add debug SHA fingerprint" || echo "No changes to commit"
           git push
