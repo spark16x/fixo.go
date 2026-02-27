@@ -19,6 +19,7 @@ class _LoginScreenState extends State<LoginScreen> {
       TextEditingController();
 
   bool loading = false;
+  bool truecallerAvailable = false;
 
   StreamSubscription? _tcStream;
 
@@ -30,14 +31,22 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
-    _initTruecaller();
-    _listenTruecaller();
+    _initializeTruecaller();
   }
 
-  void _initTruecaller() {
+  Future<void> _initializeTruecaller() async {
+
     TcSdk.initializeSDK(
       sdkOption: TcSdkOptions.OPTION_VERIFY_ONLY_TC_USERS,
     );
+
+    _listenTruecaller();
+
+    /// Check availability
+    truecallerAvailable =
+        await TcSdk.isOAuthFlowUsable;
+
+    if (mounted) setState(() {});
   }
 
   // ================= TRUECALLER LISTENER =================
@@ -49,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       switch (callback.result) {
 
-        // ===== OAuth Success =====
+        /// ===== SUCCESS =====
         case TcSdkCallbackResult.success:
 
           final data = callback.tcOAuthData;
@@ -60,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
             return;
           }
 
-          // ✅ SECURITY CHECK
+          /// OAuth state validation
           if (data.state != _oauthState) {
             _stopLoading();
             _show("Security validation failed");
@@ -69,7 +78,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
           final authCode = data.authorizationCode;
 
-          debugPrint("AuthorizationCode: $authCode");
+          debugPrint("AuthCode: $authCode");
 
           await _exchangeTokenWithBackend(
             authCode,
@@ -78,13 +87,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
           break;
 
-        // ===== Failure =====
+        /// ===== FAILURE =====
         case TcSdkCallbackResult.failure:
           _stopLoading();
           _show(callback.error?.message ??
               "Truecaller login failed");
           break;
 
+        /// ===== EXCEPTION =====
         case TcSdkCallbackResult.exception:
           _stopLoading();
           _show(callback.exception?.message ??
@@ -111,7 +121,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    // OAuth state
+    /// OAuth state
     _oauthState =
         DateTime.now().millisecondsSinceEpoch.toString();
 
@@ -123,7 +133,7 @@ class _LoginScreenState extends State<LoginScreen> {
       'openid',
     ]);
 
-    // PKCE
+    /// PKCE
     _codeVerifier =
         await TcSdk.generateRandomCodeVerifier;
 
@@ -138,37 +148,27 @@ class _LoginScreenState extends State<LoginScreen> {
 
     TcSdk.setCodeChallenge(challenge);
 
-    // Open Truecaller consent screen
-    TcSdk.getAuthorizationCode();
+    /// ✅ SDK v1.2.0 CORRECT CALL
+    unawaited(TcSdk.getAuthorizationCode);
   }
 
   // ================= BACKEND TOKEN EXCHANGE =================
 
   Future<void> _exchangeTokenWithBackend(
       String authCode,
-      String codeVerifier) async {
+      String verifier) async {
 
     try {
 
-      /// 🔥 CALL YOUR BACKEND HERE
-      /// Example POST:
-      /// /truecaller/login
-      ///
-      /// body:
-      /// {
-      ///   "authorizationCode": authCode,
-      ///   "codeVerifier": codeVerifier
-      /// }
-
-      await Future.delayed(
-          const Duration(seconds: 1));
+      /// TODO: Replace with real API call
+      await Future.delayed(const Duration(seconds: 1));
 
       debugPrint("Backend exchange success");
 
       _stopLoading();
       _goHome();
 
-    } catch (e) {
+    } catch (_) {
       _stopLoading();
       _show("Login failed");
     }
@@ -249,7 +249,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
-    TcSdk.clear();
     super.dispose();
   }
 
@@ -294,7 +293,6 @@ class _LoginScreenState extends State<LoginScreen> {
               maxLength: 10,
               keyboardType: TextInputType.phone,
               style: const TextStyle(color: Colors.white),
-
               decoration: InputDecoration(
                 prefixText: "+91 ",
                 prefixStyle:
@@ -322,28 +320,27 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
-
-            const Center(
-              child: Text(
-                "OR",
-                style: TextStyle(color: Colors.white),
+            if (truecallerAvailable) ...[
+              const SizedBox(height: 20),
+              const Center(
+                child: Text("OR",
+                    style: TextStyle(color: Colors.white)),
               ),
-            ),
+              const SizedBox(height: 20),
 
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: OutlinedButton.icon(
-                icon: const Icon(Icons.verified_user),
-                label:
-                    const Text("Login with Truecaller"),
-                onPressed:
-                    loading ? null : startTruecallerLogin,
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: OutlinedButton.icon(
+                  icon: const Icon(Icons.verified_user),
+                  label:
+                      const Text("Login with Truecaller"),
+                  onPressed: loading
+                      ? null
+                      : startTruecallerLogin,
+                ),
               ),
-            ),
+            ],
           ],
         ),
       ),
