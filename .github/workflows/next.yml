@@ -38,7 +38,7 @@ jobs:
         run: |
          flutter pub upgrade
 
-      - name: Commit generated app
+      - name: Commit
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
