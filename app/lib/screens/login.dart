@@ -15,7 +15,8 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
 
-  final phoneController = TextEditingController();
+  final TextEditingController phoneController =
+      TextEditingController();
 
   bool loading = false;
 
@@ -39,34 +40,104 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ================= TRUECALLER CALLBACK =================
+  // ================= TRUECALLER LISTENER =================
 
   void _listenTruecaller() {
     _tcStream = TcSdk.streamCallbackData.listen((res) async {
 
       switch (res.result) {
 
+        // ---------- OAuth Success ----------
         case TcSdkCallbackResult.success:
 
           final authCode =
               res.tcOAuthData?.authorizationCode;
 
-          debugPrint("Truecaller AuthCode: $authCode");
+          debugPrint("AuthCode: $authCode");
 
-          // Normally send authCode to backend
+          setState(() => loading = false);
+
+          // Normally send to backend
           _goHome();
           break;
 
+        // ---------- Manual Verification Needed ----------
         case TcSdkCallbackResult.verification:
-          _show("Manual verification required");
+
+          final phone = phoneController.text.trim();
+
+          if (phone.length != 10) {
+            _show("Enter phone number first");
+            setState(() => loading = false);
+            return;
+          }
+
+          TcSdk.requestVerification(
+            phoneNumber: "+91$phone",
+          );
+
           break;
 
+        // ---------- OTP FLOW ----------
+        case TcSdkCallbackResult.otpInitiated:
+          _show("OTP sent via Truecaller");
+          break;
+
+        case TcSdkCallbackResult.otpReceived:
+
+          final otp = res.otp;
+
+          if (otp != null) {
+            TcSdk.verifyOtp(
+              firstName: "User",
+              lastName: "",
+              otp: otp,
+            );
+          }
+          break;
+
+        // ---------- MISSED CALL FLOW ----------
+        case TcSdkCallbackResult.missedCallReceived:
+
+          TcSdk.verifyMissedCall(
+            firstName: "User",
+            lastName: "",
+          );
+          break;
+
+        // ---------- FINAL SUCCESS ----------
+        case TcSdkCallbackResult.verificationComplete:
+
+          debugPrint("AccessToken: ${res.accessToken}");
+
+          setState(() => loading = false);
+          _goHome();
+          break;
+
+        // ---------- Already Verified ----------
+        case TcSdkCallbackResult.verifiedBefore:
+
+          debugPrint(
+              "Verified: ${res.profile?.phoneNumber}");
+
+          setState(() => loading = false);
+          _goHome();
+          break;
+
+        // ---------- Errors ----------
         case TcSdkCallbackResult.failure:
+          setState(() => loading = false);
           _show(res.error?.message ?? "Truecaller Failed");
           break;
 
         case TcSdkCallbackResult.closed:
+          setState(() => loading = false);
           _show("User closed Truecaller");
+          break;
+
+        case TcSdkCallbackResult.exception:
+          setState(() => loading = false);
+          _show(res.exception?.message ?? "Exception");
           break;
 
         default:
@@ -75,14 +146,17 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
-  // ================= START TRUECALLER =================
+  // ================= START TRUECALLER LOGIN =================
 
   Future<void> startTruecallerLogin() async {
+
+    setState(() => loading = true);
 
     final usable = await TcSdk.isOAuthFlowUsable;
 
     if (!usable) {
-      _show("Truecaller not installed or supported");
+      setState(() => loading = false);
+      _show("Truecaller not installed");
       return;
     }
 
@@ -94,7 +168,7 @@ class _LoginScreenState extends State<LoginScreen> {
     TcSdk.setOAuthScopes([
       'profile',
       'phone',
-      'openid'
+      'openid',
     ]);
 
     _codeVerifier =
@@ -104,17 +178,17 @@ class _LoginScreenState extends State<LoginScreen> {
         await TcSdk.generateCodeChallenge(_codeVerifier!);
 
     if (challenge == null) {
-      _show("Device not supported");
+      setState(() => loading = false);
+      _show("Unsupported device");
       return;
     }
 
     TcSdk.setCodeChallenge(challenge);
 
-    // ✅ IMPORTANT (you missed brackets)
     TcSdk.getAuthorizationCode();
   }
 
-  // ================= OTP LOGIN =================
+  // ================= FIREBASE OTP LOGIN =================
 
   Future<void> sendOtp() async {
 
@@ -131,13 +205,14 @@ class _LoginScreenState extends State<LoginScreen> {
       phoneNumber: "+91$phone",
 
       verificationCompleted: (cred) async {
-        await FirebaseAuth.instance.signInWithCredential(cred);
+        await FirebaseAuth.instance
+            .signInWithCredential(cred);
         _goHome();
       },
 
       verificationFailed: (e) {
         setState(() => loading = false);
-        _show(e.message ?? "OTP failed");
+        _show(e.message ?? "OTP Failed");
       },
 
       codeSent: (id, _) {
@@ -146,7 +221,8 @@ class _LoginScreenState extends State<LoginScreen> {
         Navigator.push(
           context,
           MaterialPageRoute(
-            builder: (_) => OtpScreen(verificationId: id),
+            builder: (_) =>
+                OtpScreen(verificationId: id),
           ),
         );
       },
@@ -170,9 +246,9 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  void _show(String s) {
+  void _show(String msg) {
     ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(s)));
+        .showSnackBar(SnackBar(content: Text(msg)));
   }
 
   // ================= DISPOSE =================
@@ -181,10 +257,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
-
-    // ✅ Important cleanup
     TcSdk.clear();
-
     super.dispose();
   }
 
@@ -192,8 +265,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       backgroundColor: Colors.black,
+
       body: Padding(
         padding: const EdgeInsets.all(24),
 
@@ -234,7 +309,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 filled: true,
                 fillColor: Colors.grey[900],
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius:
+                      BorderRadius.circular(12),
                   borderSide: BorderSide.none,
                 ),
               ),
@@ -269,8 +345,10 @@ class _LoginScreenState extends State<LoginScreen> {
               height: 52,
               child: OutlinedButton.icon(
                 icon: const Icon(Icons.verified_user),
-                label: const Text("Login with Truecaller"),
-                onPressed: startTruecallerLogin,
+                label:
+                    const Text("Login with Truecaller"),
+                onPressed:
+                    loading ? null : startTruecallerLogin,
               ),
             ),
           ],

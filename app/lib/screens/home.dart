@@ -11,16 +11,21 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  final LatLng _initialPos = LatLng(28.6139, 77.2090);
+  final LatLng _initialPos = const LatLng(28.6139, 77.2090);
 
   @override
   Widget build(BuildContext context) {
+
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0B),
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       body: Stack(
         children: [
 
-          // 🌍 OpenStreetMap Map Widget
+          // 🌍 OpenStreetMap
           FlutterMap(
             options: MapOptions(
               initialCenter: _initialPos,
@@ -28,30 +33,36 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             children: [
               TileLayer(
-                urlTemplate: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+                urlTemplate:
+                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
                 subdomains: const ['a', 'b', 'c'],
               ),
             ],
           ),
 
-          // Top search bar
+          // 🔎 Search Bar
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16),
                 height: 52,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1A1A1A),
+                  color: colors.surface,
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
-                    Icon(Icons.search, color: Colors.white54),
-                    SizedBox(width: 10),
+                    Icon(Icons.search,
+                        color: colors.onSurface.withOpacity(.6)),
+                    const SizedBox(width: 10),
                     Text(
                       "Search location",
-                      style: TextStyle(color: Colors.white54),
+                      style: TextStyle(
+                        color:
+                            colors.onSurface.withOpacity(.6),
+                      ),
                     )
                   ],
                 ),
@@ -59,53 +70,68 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          // Bottom action panel (unchanged)
+          // 📦 Bottom Panel
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.all(20),
-              decoration: const BoxDecoration(
-                color: Color(0xFF111111),
-                borderRadius: BorderRadius.vertical(
+              decoration: BoxDecoration(
+                color: colors.surface,
+                borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
                   Container(
                     width: 40,
                     height: 4,
-                    margin: const EdgeInsets.only(bottom: 16),
+                    margin:
+                        const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: Colors.white24,
-                      borderRadius: BorderRadius.circular(10),
+                      color: colors.onSurface
+                          .withOpacity(.25),
+                      borderRadius:
+                          BorderRadius.circular(10),
                     ),
                   ),
-                  const Text(
+
+                  Text(
                     "Need Roadside Help?",
-                    style: TextStyle(
-                      fontSize: 18,
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
+
                   const SizedBox(height: 8),
-                  const Text(
+
+                  Text(
                     "Request a nearby mechanic instantly",
-                    style: TextStyle(color: Colors.white60),
+                    style: theme.textTheme.bodyMedium
+                        ?.copyWith(
+                      color:
+                          colors.onSurface.withOpacity(.6),
+                    ),
                   ),
+
                   const SizedBox(height: 20),
+
                   SizedBox(
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton(
+                      onPressed: () {},
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.redAccent,
+                        backgroundColor:
+                            colors.primary,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
+                          borderRadius:
+                              BorderRadius.circular(14),
                         ),
                       ),
-                      onPressed: () {},
                       child: const Text(
                         "Request Help",
                         style: TextStyle(
@@ -115,12 +141,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                   ),
+
                   const SizedBox(height: 12),
                 ],
               ),
             ),
           ),
-
         ],
       ),
     );

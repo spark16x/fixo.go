@@ -11,8 +11,11 @@ class OtpScreen extends StatefulWidget {
 }
 
 class _OtpScreenState extends State<OtpScreen> {
+
   final List<TextEditingController> _controllers =
       List.generate(6, (_) => TextEditingController());
+
+  bool loading = false;
 
   @override
   void dispose() {
@@ -22,82 +25,119 @@ class _OtpScreenState extends State<OtpScreen> {
     super.dispose();
   }
 
+  // ================= VERIFY OTP =================
+
+  Future<void> verifyOtp() async {
+
+    String code = _controllers.map((c) => c.text).join();
+
+    if (code.length != 6) {
+      _show("Enter complete OTP");
+      return;
+    }
+
+    setState(() => loading = true);
+
+    try {
+      final cred = PhoneAuthProvider.credential(
+        verificationId: widget.verificationId,
+        smsCode: code,
+      );
+
+      await FirebaseAuth.instance.signInWithCredential(cred);
+
+      if (!mounted) return;
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+      );
+
+    } catch (e) {
+      _show("Invalid OTP");
+    }
+
+    setState(() => loading = false);
+  }
+
+  void _show(String msg) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  // ================= UI =================
+
   @override
   Widget build(BuildContext context) {
+
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+
     return Scaffold(
-      backgroundColor: const Color(0xFF0B0B0B),
+      backgroundColor: theme.scaffoldBackgroundColor,
+
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: Icon(Icons.arrow_back,
+              color: colors.onBackground),
           onPressed: () => Navigator.pop(context),
         ),
       ),
+
       body: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 24),
+
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+
             const SizedBox(height: 20),
 
-            const Text(
+            Text(
               'Verify OTP',
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
+              style: theme.textTheme.headlineMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 8),
+
+            Text(
+              'Enter the 6-digit code sent to your phone',
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: colors.onSurface.withOpacity(.6),
               ),
             ),
-            const SizedBox(height: 8),
-            const Text(
-              'Enter the 6-digit code sent to your phone',
-              style: TextStyle(color: Colors.white60),
-            ),
 
             const SizedBox(height: 40),
 
-            // OTP boxes
+            // OTP Boxes
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: List.generate(6, (index) {
-                return _otpBox(index);
-              }),
+              children:
+                  List.generate(6, (index) => _otpBox(index)),
             ),
 
             const SizedBox(height: 40),
 
-            // Verify button
+            // Verify Button
             SizedBox(
               width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blueAccent,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(14),
-                  ),
-                ),
-               onPressed: () async {
-                 String code = _controllers.map((c) => c.text).join();
-                 final cred = PhoneAuthProvider.credential(
-                   verificationId: widget.verificationId,
-                   smsCode: code,
-                   
-                 );
-                 
-                 await FirebaseAuth.instance.signInWithCredential(cred);
-                 
-                 Navigator.pushReplacement(
-                   context,
-                   MaterialPageRoute(builder: (_) => const HomeScreen()),
-                   
-                 );
-                 
-               },
-                child: const Text(
-                  'Verify & Continue',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
+                onPressed: loading ? null : verifyOtp,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text(
+                        'Verify & Continue',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
               ),
             ),
 
@@ -105,12 +145,13 @@ class _OtpScreenState extends State<OtpScreen> {
 
             Center(
               child: TextButton(
-                onPressed: () {
-                  // resend OTP logic later
-                },
-                child: const Text(
+                onPressed: () {},
+                child: Text(
                   'Resend OTP',
-                  style: TextStyle(color: Colors.white60),
+                  style: TextStyle(
+                    color:
+                        colors.onSurface.withOpacity(.6),
+                  ),
                 ),
               ),
             ),
@@ -120,7 +161,12 @@ class _OtpScreenState extends State<OtpScreen> {
     );
   }
 
+  // ================= OTP BOX =================
+
   Widget _otpBox(int index) {
+
+    final colors = Theme.of(context).colorScheme;
+
     return SizedBox(
       width: 48,
       height: 56,
@@ -129,23 +175,33 @@ class _OtpScreenState extends State<OtpScreen> {
         keyboardType: TextInputType.number,
         textAlign: TextAlign.center,
         maxLength: 1,
-        style: const TextStyle(
+
+        style: TextStyle(
           fontSize: 20,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: colors.onSurface,
         ),
+
         decoration: InputDecoration(
           counterText: '',
           filled: true,
-          fillColor: const Color(0xFF1A1A1A),
+          fillColor: colors.surface,
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12),
             borderSide: BorderSide.none,
           ),
         ),
+
         onChanged: (value) {
+
+          // forward focus
           if (value.isNotEmpty && index < 5) {
             FocusScope.of(context).nextFocus();
+          }
+
+          // backward focus
+          if (value.isEmpty && index > 0) {
+            FocusScope.of(context).previousFocus();
           }
         },
       ),

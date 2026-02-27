@@ -20,6 +20,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Fixo.go',
+      themeMode: ThemeMode.system,
       theme: ThemeData.dark(),
       home: const AuthWrapper(),
     );
