@@ -40,28 +40,28 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  // ================= TRUECALLER LISTENER =================
+  // ================= TRUECALLER CALLBACK LISTENER =================
 
   void _listenTruecaller() {
-    _tcStream = TcSdk.streamCallbackData.listen((res) async {
+    _tcStream = TcSdk.streamCallbackData.listen((res) {
 
       switch (res.result) {
 
-        // ---------- OAuth Success ----------
+        // ===== OAuth Success =====
         case TcSdkCallbackResult.success:
 
           final authCode =
               res.tcOAuthData?.authorizationCode;
 
-          debugPrint("AuthCode: $authCode");
+          debugPrint("Truecaller AuthCode: $authCode");
 
           setState(() => loading = false);
 
-          // Normally send to backend
+          // Normally send authCode to backend
           _goHome();
           break;
 
-        // ---------- Manual Verification Needed ----------
+        // ===== Manual Verification Required =====
         case TcSdkCallbackResult.verification:
 
           final phone = phoneController.text.trim();
@@ -75,14 +75,16 @@ class _LoginScreenState extends State<LoginScreen> {
           TcSdk.requestVerification(
             phoneNumber: "+91$phone",
           );
-
           break;
 
-        // ---------- OTP FLOW ----------
+        // ===== Verification Started =====
         case TcSdkCallbackResult.otpInitiated:
-          _show("OTP sent via Truecaller");
+        case TcSdkCallbackResult.imOtpInitiated:
+        case TcSdkCallbackResult.missedCallInitiated:
+          _show("Verification started");
           break;
 
+        // ===== OTP Auto Received =====
         case TcSdkCallbackResult.otpReceived:
 
           final otp = res.otp;
@@ -96,7 +98,7 @@ class _LoginScreenState extends State<LoginScreen> {
           }
           break;
 
-        // ---------- MISSED CALL FLOW ----------
+        // ===== Missed Call Verification =====
         case TcSdkCallbackResult.missedCallReceived:
 
           TcSdk.verifyMissedCall(
@@ -105,7 +107,7 @@ class _LoginScreenState extends State<LoginScreen> {
           );
           break;
 
-        // ---------- FINAL SUCCESS ----------
+        // ===== Final Success =====
         case TcSdkCallbackResult.verificationComplete:
 
           debugPrint("AccessToken: ${res.accessToken}");
@@ -114,7 +116,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _goHome();
           break;
 
-        // ---------- Already Verified ----------
+        // ===== Already Verified =====
         case TcSdkCallbackResult.verifiedBefore:
 
           debugPrint(
@@ -124,17 +126,13 @@ class _LoginScreenState extends State<LoginScreen> {
           _goHome();
           break;
 
-        // ---------- Errors ----------
+        // ===== Failure =====
         case TcSdkCallbackResult.failure:
           setState(() => loading = false);
           _show(res.error?.message ?? "Truecaller Failed");
           break;
 
-        case TcSdkCallbackResult.closed:
-          setState(() => loading = false);
-          _show("User closed Truecaller");
-          break;
-
+        // ===== Exception =====
         case TcSdkCallbackResult.exception:
           setState(() => loading = false);
           _show(res.exception?.message ?? "Exception");
@@ -156,7 +154,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (!usable) {
       setState(() => loading = false);
-      _show("Truecaller not installed");
+      _show("Truecaller not installed or unsupported");
       return;
     }
 
@@ -185,6 +183,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     TcSdk.setCodeChallenge(challenge);
 
+    // IMPORTANT: do not await
     TcSdk.getAuthorizationCode();
   }
 
@@ -257,7 +256,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
-    TcSdk.clear();
     super.dispose();
   }
 
