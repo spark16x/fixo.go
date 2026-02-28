@@ -41,6 +41,7 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   truecaller_sdk: ^1.2.0
+  uuid: ^4.5.3
 
 dev_dependencies:
   flutter_test:

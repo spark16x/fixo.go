@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:truecaller_sdk/truecaller_sdk.dart';
+import 'package:uuid/uuid.dart';
 
 import 'otp.dart';
 import 'home.dart';
@@ -20,6 +21,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   bool loading = false;
   bool truecallerAvailable = false;
+  bool checkingTruecaller = true;
 
   StreamSubscription? _tcStream;
 
@@ -40,13 +42,18 @@ class _LoginScreenState extends State<LoginScreen> {
       sdkOption: TcSdkOptions.OPTION_VERIFY_ONLY_TC_USERS,
     );
 
-    _listenTruecaller();
+    final usable = await TcSdk.isOAuthFlowUsable;
 
-    /// Check availability
-    truecallerAvailable =
-        await TcSdk.isOAuthFlowUsable;
+    if (!mounted) return;
 
-    if (mounted) setState(() {});
+    truecallerAvailable = usable;
+    checkingTruecaller = false;
+
+    if (usable) {
+      _listenTruecaller();
+    }
+
+    setState(() {});
   }
 
   // ================= TRUECALLER LISTENER =================
@@ -73,6 +80,12 @@ class _LoginScreenState extends State<LoginScreen> {
           if (data.state != _oauthState) {
             _stopLoading();
             _show("Security validation failed");
+            return;
+          }
+
+          if (_codeVerifier == null) {
+            _stopLoading();
+            _show("Login session expired");
             return;
           }
 
@@ -121,10 +134,8 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
-    /// OAuth state
-    _oauthState =
-        DateTime.now().millisecondsSinceEpoch.toString();
-
+    /// Secure OAuth state (UUID)
+    _oauthState = const Uuid().v4();
     TcSdk.setOAuthState(_oauthState!);
 
     TcSdk.setOAuthScopes([
@@ -148,8 +159,8 @@ class _LoginScreenState extends State<LoginScreen> {
 
     TcSdk.setCodeChallenge(challenge);
 
-    /// ✅ SDK v1.2.0 CORRECT CALL
-    unawaited(TcSdk.getAuthorizationCode);
+    /// Launch Truecaller consent
+    TcSdk.getAuthorizationCode;
   }
 
   // ================= BACKEND TOKEN EXCHANGE =================
@@ -249,6 +260,7 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
+    TcSdk.clear(); // important cleanup
     super.dispose();
   }
 
@@ -320,7 +332,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
             ),
 
-            if (truecallerAvailable) ...[
+            if (!checkingTruecaller && truecallerAvailable) ...[
               const SizedBox(height: 20),
               const Center(
                 child: Text("OR",
