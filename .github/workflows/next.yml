@@ -36,7 +36,7 @@ jobs:
       - name: update all dep
         working-directory: app
         run: |
-         flutter pub upgrade 
+         flutter pub get 
 
       - name: Commit
         run: |
