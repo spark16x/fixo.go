@@ -260,7 +260,6 @@ class _LoginScreenState extends State<LoginScreen> {
   void dispose() {
     phoneController.dispose();
     _tcStream?.cancel();
-    TcSdk.clear(); // important cleanup
     super.dispose();
   }
 
