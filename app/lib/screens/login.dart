@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:truecaller_sdk/truecaller_sdk.dart';
 import 'package:uuid/uuid.dart';
 
-import 'otp.dart';
 import 'home.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -14,12 +13,36 @@ class LoginScreen extends StatefulWidget {
   State<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends State<LoginScreen>
+    with SingleTickerProviderStateMixin {
 
-  final TextEditingController phoneController =
-      TextEditingController();
+  /// ================= CONTROLLERS =================
 
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  final emailFocus = FocusNode();
+  final passwordFocus = FocusNode();
+
+  bool isLogin = true;
   bool loading = false;
+  bool obscurePassword = true;
+
+  /// ================= VALIDATION =================
+
+  bool emailValid = false;
+
+  double passwordStrength = 0;
+  String strengthText = "";
+  Color strengthColor = Colors.grey;
+
+  bool hasLength = false;
+  bool hasUpper = false;
+  bool hasNumber = false;
+  bool hasSpecial = false;
+
+  /// ================= TRUECALLER STATE (UNCHANGED) =================
+
   bool truecallerAvailable = false;
   bool checkingTruecaller = true;
 
@@ -36,8 +59,54 @@ class _LoginScreenState extends State<LoginScreen> {
     _initializeTruecaller();
   }
 
-  Future<void> _initializeTruecaller() async {
+  // ================= EMAIL VALIDATION =================
 
+  void _validateEmail(String value) {
+    final regex =
+        RegExp(r'^[\w\-\.]+@([\w\-]+\.)+[\w]{2,4}$');
+
+    setState(() {
+      emailValid = regex.hasMatch(value);
+    });
+  }
+
+  // ================= PASSWORD CHECK =================
+
+  void _checkPassword(String value) {
+    hasLength = value.length >= 8;
+    hasUpper = RegExp(r'[A-Z]').hasMatch(value);
+    hasNumber = RegExp(r'[0-9]').hasMatch(value);
+    hasSpecial =
+        RegExp(r'[!@#$%^&*(),.?":{}|<>]').hasMatch(value);
+
+    double strength = 0;
+    if (hasLength) strength += 0.25;
+    if (hasUpper) strength += 0.25;
+    if (hasNumber) strength += 0.25;
+    if (hasSpecial) strength += 0.25;
+
+    setState(() {
+      passwordStrength = strength;
+
+      if (strength <= .25) {
+        strengthText = "Weak";
+        strengthColor = Colors.red;
+      } else if (strength <= .5) {
+        strengthText = "Fair";
+        strengthColor = Colors.orange;
+      } else if (strength <= .75) {
+        strengthText = "Good";
+        strengthColor = Colors.yellow;
+      } else {
+        strengthText = "Strong";
+        strengthColor = Colors.green;
+      }
+    });
+  }
+
+  // ================= TRUECALLER INIT =================
+
+  Future<void> _initializeTruecaller() async {
     TcSdk.initializeSDK(
       sdkOption: TcSdkOptions.OPTION_VERIFY_ONLY_TC_USERS,
     );
@@ -49,198 +118,112 @@ class _LoginScreenState extends State<LoginScreen> {
     truecallerAvailable = usable;
     checkingTruecaller = false;
 
-    if (usable) {
-      _listenTruecaller();
-    }
+    if (usable) _listenTruecaller();
 
     setState(() {});
   }
 
-  // ================= TRUECALLER LISTENER =================
-
   void _listenTruecaller() {
-
     _tcStream =
         TcSdk.streamCallbackData.listen((callback) async {
 
-      switch (callback.result) {
+      if (callback.result ==
+          TcSdkCallbackResult.success) {
 
-        /// ===== SUCCESS =====
-        case TcSdkCallbackResult.success:
+        final data = callback.tcOAuthData;
 
-          final data = callback.tcOAuthData;
-
-          if (data == null) {
-            _stopLoading();
-            _show("Invalid Truecaller response");
-            return;
-          }
-
-          /// OAuth state validation
-          if (data.state != _oauthState) {
-            _stopLoading();
-            _show("Security validation failed");
-            return;
-          }
-
-          if (_codeVerifier == null) {
-            _stopLoading();
-            _show("Login session expired");
-            return;
-          }
-
-          final authCode = data.authorizationCode;
-
-          debugPrint("AuthCode: $authCode");
-
-          await _exchangeTokenWithBackend(
-            authCode,
-            _codeVerifier!,
-          );
-
-          break;
-
-        /// ===== FAILURE =====
-        case TcSdkCallbackResult.failure:
+        if (data == null ||
+            data.state != _oauthState ||
+            _codeVerifier == null) {
           _stopLoading();
-          _show(callback.error?.message ??
-              "Truecaller login failed");
-          break;
+          _show("Truecaller validation failed");
+          return;
+        }
 
-        /// ===== EXCEPTION =====
-        case TcSdkCallbackResult.exception:
-          _stopLoading();
-          _show(callback.exception?.message ??
-              "Truecaller exception");
-          break;
-
-        default:
-          break;
+        await _exchangeTokenWithBackend(
+          data.authorizationCode,
+          _codeVerifier!,
+        );
       }
     });
   }
 
-  // ================= START TRUECALLER LOGIN =================
-
   Future<void> startTruecallerLogin() async {
-
     setState(() => loading = true);
 
-    final usable = await TcSdk.isOAuthFlowUsable;
-
-    if (!usable) {
-      _stopLoading();
-      _show("Truecaller not installed");
-      return;
-    }
-
-    /// Secure OAuth state (UUID)
     _oauthState = const Uuid().v4();
     TcSdk.setOAuthState(_oauthState!);
 
-    TcSdk.setOAuthScopes([
-      'profile',
-      'phone',
-      'openid',
-    ]);
+    TcSdk.setOAuthScopes(
+        ['profile', 'phone', 'openid']);
 
-    /// PKCE
     _codeVerifier =
         await TcSdk.generateRandomCodeVerifier;
 
     final challenge =
-        await TcSdk.generateCodeChallenge(_codeVerifier!);
+        await TcSdk.generateCodeChallenge(
+            _codeVerifier!);
 
     if (challenge == null) {
       _stopLoading();
-      _show("Unsupported device");
       return;
     }
 
     TcSdk.setCodeChallenge(challenge);
-
-    /// Launch Truecaller consent
     TcSdk.getAuthorizationCode;
   }
 
-  // ================= BACKEND TOKEN EXCHANGE =================
-
   Future<void> _exchangeTokenWithBackend(
-      String authCode,
-      String verifier) async {
-
-    try {
-
-      /// TODO: Replace with real API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      debugPrint("Backend exchange success");
-
-      _stopLoading();
-      _goHome();
-
-    } catch (_) {
-      _stopLoading();
-      _show("Login failed");
-    }
+      String code, String verifier) async {
+    await Future.delayed(const Duration(seconds: 1));
+    _goHome();
   }
 
-  // ================= FIREBASE OTP =================
+  // ================= EMAIL AUTH =================
 
-  Future<void> sendOtp() async {
+  Future<void> authenticate() async {
 
-    final phone = phoneController.text.trim();
+    if (!emailValid) {
+      _show("Enter valid email");
+      return;
+    }
 
-    if (phone.length != 10) {
-      _show("Invalid number");
+    if (!isLogin && passwordStrength < 0.75) {
+      _show("Password too weak");
       return;
     }
 
     setState(() => loading = true);
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: "+91$phone",
-
-      verificationCompleted: (cred) async {
+    try {
+      if (isLogin) {
         await FirebaseAuth.instance
-            .signInWithCredential(cred);
-        _goHome();
-      },
-
-      verificationFailed: (e) {
-        _stopLoading();
-        _show(e.message ?? "OTP Failed");
-      },
-
-      codeSent: (id, _) {
-        _stopLoading();
-
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) =>
-                OtpScreen(verificationId: id),
-          ),
+            .signInWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
         );
-      },
+      } else {
+        await FirebaseAuth.instance
+            .createUserWithEmailAndPassword(
+          email: emailController.text.trim(),
+          password: passwordController.text.trim(),
+        );
+      }
 
-      codeAutoRetrievalTimeout: (_) {
-        _stopLoading();
-      },
-    );
+      _goHome();
+    } on FirebaseAuthException catch (e) {
+      _show(e.message ?? "Auth failed");
+      _stopLoading();
+    }
   }
 
   // ================= HELPERS =================
 
   void _stopLoading() {
-    if (mounted) {
-      setState(() => loading = false);
-    }
+    if (mounted) setState(() => loading = false);
   }
 
   void _goHome() {
-    if (!mounted) return;
-
     Navigator.pushReplacement(
       context,
       MaterialPageRoute(
@@ -258,7 +241,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    phoneController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
+    emailFocus.dispose();
+    passwordFocus.dispose();
     _tcStream?.cancel();
     super.dispose();
   }
@@ -272,89 +258,177 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: Colors.black,
       body: Padding(
         padding: const EdgeInsets.all(24),
-
-        child: Column(
-          mainAxisAlignment:
-              MainAxisAlignment.center,
-          crossAxisAlignment:
-              CrossAxisAlignment.start,
-
+        child: ListView(
           children: [
 
-            const Text(
-              "Login",
-              style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-
-            const SizedBox(height: 10),
-
-            const Text(
-              "Continue with Truecaller or OTP",
-              style: TextStyle(color: Colors.white60),
+            Text(
+              isLogin ? "Login" : "Register",
+              style: const TextStyle(
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold),
             ),
 
             const SizedBox(height: 30),
 
+            /// EMAIL
             TextField(
-              controller: phoneController,
-              maxLength: 10,
-              keyboardType: TextInputType.phone,
-              style: const TextStyle(color: Colors.white),
-              decoration: InputDecoration(
-                prefixText: "+91 ",
-                prefixStyle:
-                    const TextStyle(color: Colors.white),
-                filled: true,
-                fillColor: Colors.grey[900],
-                border: OutlineInputBorder(
-                  borderRadius:
-                      BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+              controller: emailController,
+              focusNode: emailFocus,
+              autofocus: true,
+              onChanged: _validateEmail,
+              textInputAction: TextInputAction.next,
+              onSubmitted: (_) =>
+                  passwordFocus.requestFocus(),
+              style:
+                  const TextStyle(color: Colors.white),
+              decoration:
+                  _input("Email", valid: emailValid),
+            ),
+
+            const SizedBox(height: 16),
+
+            /// PASSWORD
+            TextField(
+              controller: passwordController,
+              focusNode: passwordFocus,
+              obscureText: obscurePassword,
+              onChanged: _checkPassword,
+              style:
+                  const TextStyle(color: Colors.white),
+              decoration: _input(
+                "Password",
+                suffix: IconButton(
+                  icon: Icon(
+                    obscurePassword
+                        ? Icons.visibility
+                        : Icons.visibility_off,
+                  ),
+                  onPressed: () => setState(
+                      () => obscurePassword =
+                          !obscurePassword),
                 ),
               ),
             ),
+
+            /// PASSWORD STRENGTH
+            if (!isLogin &&
+                passwordController.text.isNotEmpty) ...[
+              const SizedBox(height: 12),
+
+              TweenAnimationBuilder(
+                duration:
+                    const Duration(milliseconds: 300),
+                tween:
+                    Tween(begin: 0.0, end: passwordStrength),
+                builder: (_, value, __) =>
+                    LinearProgressIndicator(
+                  value: value,
+                  minHeight: 6,
+                  backgroundColor: Colors.grey[800],
+                  valueColor:
+                      AlwaysStoppedAnimation(
+                          strengthColor),
+                ),
+              ),
+
+              const SizedBox(height: 6),
+
+              Text(
+                "Strength: $strengthText",
+                style: TextStyle(
+                    color: strengthColor),
+              ),
+
+              const SizedBox(height: 10),
+
+              _rule("8+ characters", hasLength),
+              _rule("Uppercase letter", hasUpper),
+              _rule("Number", hasNumber),
+              _rule("Special character", hasSpecial),
+            ],
 
             const SizedBox(height: 20),
 
             SizedBox(
-              width: double.infinity,
               height: 52,
               child: ElevatedButton(
-                onPressed: loading ? null : sendOtp,
+                onPressed: loading ? null : authenticate,
                 child: loading
                     ? const CircularProgressIndicator()
-                    : const Text("Continue with OTP"),
+                    : Text(
+                        isLogin ? "Login" : "Register"),
               ),
             ),
 
-            if (!checkingTruecaller && truecallerAvailable) ...[
+            TextButton(
+              onPressed: () =>
+                  setState(() => isLogin = !isLogin),
+              child: Text(isLogin
+                  ? "Create account"
+                  : "Already have account?"),
+            ),
+
+            if (!checkingTruecaller &&
+                truecallerAvailable) ...[
               const SizedBox(height: 20),
               const Center(
-                child: Text("OR",
-                    style: TextStyle(color: Colors.white)),
-              ),
+                  child: Text("OR",
+                      style:
+                          TextStyle(color: Colors.white))),
               const SizedBox(height: 20),
 
-              SizedBox(
-                width: double.infinity,
-                height: 52,
-                child: OutlinedButton.icon(
-                  icon: const Icon(Icons.verified_user),
-                  label:
-                      const Text("Login with Truecaller"),
-                  onPressed: loading
-                      ? null
-                      : startTruecallerLogin,
-                ),
+              OutlinedButton.icon(
+                icon:
+                    const Icon(Icons.verified_user),
+                label:
+                    const Text("Login with Truecaller"),
+                onPressed:
+                    loading ? null : startTruecallerLogin,
               ),
             ],
           ],
         ),
       ),
+    );
+  }
+
+  // ================= UI HELPERS =================
+
+  InputDecoration _input(String hint,
+      {bool valid = true, Widget? suffix}) {
+    return InputDecoration(
+      hintText: hint,
+      hintStyle:
+          const TextStyle(color: Colors.white54),
+      suffixIcon: suffix,
+      filled: true,
+      fillColor: Colors.grey[900],
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide:
+            BorderSide(color: valid ? Colors.grey : Colors.red),
+      ),
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+    );
+  }
+
+  Widget _rule(String text, bool ok) {
+    return Row(
+      children: [
+        Icon(
+          ok ? Icons.check_circle : Icons.cancel,
+          color: ok ? Colors.green : Colors.grey,
+          size: 18,
+        ),
+        const SizedBox(width: 8),
+        Text(text,
+            style: const TextStyle(
+                color: Colors.white70)),
+      ],
     );
   }
 }

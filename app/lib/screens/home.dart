@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -11,7 +12,45 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
 
-  final LatLng _initialPos = const LatLng(28.6139, 77.2090);
+  final MapController _mapController = MapController();
+
+  LatLng _currentPos = const LatLng(28.6139, 77.2090); // Delhi default
+  bool loadingLocation = false;
+
+  // ================= GET CURRENT LOCATION =================
+
+  Future<void> _getCurrentLocation() async {
+
+    setState(() => loadingLocation = true);
+
+    LocationPermission permission =
+        await Geolocator.checkPermission();
+
+    if (permission == LocationPermission.denied) {
+      permission =
+          await Geolocator.requestPermission();
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      setState(() => loadingLocation = false);
+      return;
+    }
+
+    final position =
+        await Geolocator.getCurrentPosition();
+
+    final newPos =
+        LatLng(position.latitude, position.longitude);
+
+    setState(() {
+      _currentPos = newPos;
+      loadingLocation = false;
+    });
+
+    _mapController.move(newPos, 15);
+  }
+
+  // ================= UI =================
 
   @override
   Widget build(BuildContext context) {
@@ -25,61 +64,175 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Stack(
         children: [
 
-          // 🌍 OpenStreetMap
+          /// 🌍 MAP
           FlutterMap(
+            mapController: _mapController,
             options: MapOptions(
-              initialCenter: _initialPos,
+              initialCenter: _currentPos,
               initialZoom: 14,
             ),
             children: [
+
+              /// ✅ FIXED OSM TILE (NO ACCESS BLOCK)
               TileLayer(
                 urlTemplate:
-                    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-                subdomains: const ['a', 'b', 'c'],
+                    "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+                userAgentPackageName:
+                    "com.spark16x.fixogo", // change to your package name
+              ),
+
+              /// 📍 MARKER
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: _currentPos,
+                    width: 50,
+                    height: 50,
+                    child: const Icon(
+                      Icons.location_pin,
+                      size: 50,
+                      color: Colors.red,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
 
-          // 🔎 Search Bar
+          /// ================= TOP UI =================
           SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16),
-                height: 52,
-                decoration: BoxDecoration(
-                  color: colors.surface,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.search,
-                        color: colors.onSurface.withOpacity(.6)),
-                    const SizedBox(width: 10),
-                    Text(
-                      "Search location",
-                      style: TextStyle(
-                        color:
-                            colors.onSurface.withOpacity(.6),
+              child: Column(
+                children: [
+
+                  /// AVATAR + MENU ROW
+                  Row(
+                    mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                    children: [
+
+                      /// 👤 USER AVATAR
+                      GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                            const SnackBar(
+                                content:
+                                    Text("Open Profile")),
+                          );
+                        },
+                        child: const CircleAvatar(
+                          radius: 22,
+                          backgroundImage: NetworkImage(
+                            "https://i.pravatar.cc/150?img=3",
+                          ),
+                        ),
                       ),
-                    )
-                  ],
-                ),
+
+                      /// ⋮ MENU
+                      PopupMenuButton<String>(
+                        icon:
+                            const Icon(Icons.more_vert),
+                        onSelected: (value) {
+                          ScaffoldMessenger.of(context)
+                              .showSnackBar(
+                            SnackBar(
+                                content: Text(value)),
+                          );
+                        },
+                        itemBuilder: (context) => const [
+                          PopupMenuItem(
+                            value: "Settings",
+                            child: Text("Settings"),
+                          ),
+                          PopupMenuItem(
+                            value: "Help",
+                            child: Text("Help"),
+                          ),
+                          PopupMenuItem(
+                            value: "Logout",
+                            child: Text("Logout"),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 14),
+
+                  /// 🔎 SEARCH BAR
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16),
+                    height: 52,
+                    decoration: BoxDecoration(
+                      color: colors.surface,
+                      borderRadius:
+                          BorderRadius.circular(14),
+                      boxShadow: [
+                        BoxShadow(
+                          blurRadius: 10,
+                          color:
+                              Colors.black.withOpacity(.15),
+                        )
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.search,
+                            color: colors.onSurface
+                                .withOpacity(.6)),
+                        const SizedBox(width: 10),
+                        Text(
+                          "Search location",
+                          style: TextStyle(
+                            color: colors.onSurface
+                                .withOpacity(.6),
+                          ),
+                        )
+                      ],
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
-          // 📦 Bottom Panel
+          /// 📍 CURRENT LOCATION BUTTON
+          Positioned(
+            right: 16,
+            bottom: 220,
+            child: FloatingActionButton(
+              mini: true,
+              onPressed:
+                  loadingLocation ? null : _getCurrentLocation,
+              child: loadingLocation
+                  ? const CircularProgressIndicator(
+                      color: Colors.white,
+                    )
+                  : const Icon(Icons.my_location),
+            ),
+          ),
+
+          /// ================= BOTTOM PANEL =================
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 color: colors.surface,
-                borderRadius: const BorderRadius.vertical(
+                borderRadius:
+                    const BorderRadius.vertical(
                   top: Radius.circular(24),
                 ),
+                boxShadow: [
+                  BoxShadow(
+                    blurRadius: 20,
+                    color:
+                        Colors.black.withOpacity(.2),
+                  )
+                ],
               ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
@@ -100,8 +253,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Text(
                     "Need Roadside Help?",
-                    style: theme.textTheme.titleLarge
-                        ?.copyWith(
+                    style:
+                        theme.textTheme.titleLarge
+                            ?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -110,10 +264,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                   Text(
                     "Request a nearby mechanic instantly",
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(
-                      color:
-                          colors.onSurface.withOpacity(.6),
+                    style:
+                        theme.textTheme.bodyMedium
+                            ?.copyWith(
+                      color: colors.onSurface
+                          .withOpacity(.6),
                     ),
                   ),
 
@@ -123,10 +278,16 @@ class _HomeScreenState extends State<HomeScreen> {
                     width: double.infinity,
                     height: 54,
                     child: ElevatedButton(
-                      onPressed: () {},
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            colors.primary,
+                      onPressed: () {
+                        ScaffoldMessenger.of(context)
+                            .showSnackBar(
+                          const SnackBar(
+                              content:
+                                  Text("Request Sent 🚀")),
+                        );
+                      },
+                      style:
+                          ElevatedButton.styleFrom(
                         shape: RoundedRectangleBorder(
                           borderRadius:
                               BorderRadius.circular(14),
