@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
+import 'complete_profile.dart';
 import 'home.dart';
 
 class OtpScreen extends StatefulWidget {
   final String verificationId;
+
   const OtpScreen({super.key, required this.verificationId});
 
   @override
@@ -13,41 +16,48 @@ class OtpScreen extends StatefulWidget {
 
 class _OtpScreenState extends State<OtpScreen> {
 
-  final List<TextEditingController> _controllers =
-      List.generate(6, (_) => TextEditingController());
-
+  final otpController = TextEditingController();
   bool loading = false;
-
-  @override
-  void dispose() {
-    for (var c in _controllers) {
-      c.dispose();
-    }
-    super.dispose();
-  }
-
-  // ================= VERIFY OTP =================
 
   Future<void> verifyOtp() async {
 
-    String code = _controllers.map((c) => c.text).join();
-
-    if (code.length != 6) {
-      _show("Enter complete OTP");
+    if (otpController.text.length != 6) {
+      _show("Enter valid OTP");
       return;
     }
 
     setState(() => loading = true);
 
-    try {
-      final cred = PhoneAuthProvider.credential(
-        verificationId: widget.verificationId,
-        smsCode: code,
+    final credential =
+        PhoneAuthProvider.credential(
+      verificationId: widget.verificationId,
+      smsCode: otpController.text.trim(),
+    );
+
+    final userCredential =
+        await FirebaseAuth.instance
+            .signInWithCredential(credential);
+
+    final uid = userCredential.user!.uid;
+
+    final userDoc = await FirebaseFirestore
+        .instance
+        .collection("users")
+        .doc(uid)
+        .get();
+
+    if (!userDoc.exists) {
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => CompleteProfileScreen(
+            phone: userCredential.user!.phoneNumber!,
+          ),
+        ),
       );
 
-      await FirebaseAuth.instance.signInWithCredential(cred);
-
-      if (!mounted) return;
+    } else {
 
       Navigator.pushReplacement(
         context,
@@ -55,12 +65,7 @@ class _OtpScreenState extends State<OtpScreen> {
           builder: (_) => const HomeScreen(),
         ),
       );
-
-    } catch (e) {
-      _show("Invalid OTP");
     }
-
-    setState(() => loading = false);
   }
 
   void _show(String msg) {
@@ -68,143 +73,54 @@ class _OtpScreenState extends State<OtpScreen> {
         .showSnackBar(SnackBar(content: Text(msg)));
   }
 
-  // ================= UI =================
-
   @override
   Widget build(BuildContext context) {
 
-    final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: Colors.black,
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
 
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back,
-              color: colors.onBackground),
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
-
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-
-            const SizedBox(height: 20),
-
-            Text(
-              'Verify OTP',
-              style: theme.textTheme.headlineMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
-            ),
-
-            const SizedBox(height: 8),
-
-            Text(
-              'Enter the 6-digit code sent to your phone',
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: colors.onSurface.withOpacity(.6),
+              const Text(
+                "Enter OTP",
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22),
               ),
-            ),
 
-            const SizedBox(height: 40),
+              const SizedBox(height: 20),
 
-            // OTP Boxes
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children:
-                  List.generate(6, (index) => _otpBox(index)),
-            ),
-
-            const SizedBox(height: 40),
-
-            // Verify Button
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: loading ? null : verifyOtp,
-                child: loading
-                    ? const CircularProgressIndicator()
-                    : const Text(
-                        'Verify & Continue',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-              ),
-            ),
-
-            const SizedBox(height: 24),
-
-            Center(
-              child: TextButton(
-                onPressed: () {},
-                child: Text(
-                  'Resend OTP',
-                  style: TextStyle(
-                    color:
-                        colors.onSurface.withOpacity(.6),
+              TextField(
+                controller: otpController,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                style:
+                    const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.grey[900],
+                  border: OutlineInputBorder(
+                    borderRadius:
+                        BorderRadius.circular(12),
                   ),
                 ),
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
-  // ================= OTP BOX =================
+              const SizedBox(height: 20),
 
-  Widget _otpBox(int index) {
-
-    final colors = Theme.of(context).colorScheme;
-
-    return SizedBox(
-      width: 48,
-      height: 56,
-      child: TextField(
-        controller: _controllers[index],
-        keyboardType: TextInputType.number,
-        textAlign: TextAlign.center,
-        maxLength: 1,
-
-        style: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: colors.onSurface,
-        ),
-
-        decoration: InputDecoration(
-          counterText: '',
-          filled: true,
-          fillColor: colors.surface,
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide.none,
+              ElevatedButton(
+                onPressed: loading ? null : verifyOtp,
+                child: loading
+                    ? const CircularProgressIndicator()
+                    : const Text("Verify"),
+              ),
+            ],
           ),
         ),
-
-        onChanged: (value) {
-
-          // forward focus
-          if (value.isNotEmpty && index < 5) {
-            FocusScope.of(context).nextFocus();
-          }
-
-          // backward focus
-          if (value.isEmpty && index > 0) {
-            FocusScope.of(context).previousFocus();
-          }
-        },
       ),
     );
   }
