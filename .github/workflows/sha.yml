@@ -27,4 +27,4 @@ jobs:
       # 4️⃣ Extract SHA-1 into file
       - name: Get  SHA
         run: |
-          keytool -list -v -keystore /app/android/upload-keystore.jks -alias upload
+          keytool -list -v -keystore upload-keystore.jks -alias upload
