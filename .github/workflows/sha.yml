@@ -23,34 +23,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # 3️⃣ Generate Debug Keystore
-      - name: Generate Debug Keystore
-        run: |
-          mkdir -p ~/.android
-          keytool -genkeypair \
-            -alias androiddebugkey \
-            -keyalg RSA \
-            -keysize 2048 \
-            -validity 10000 \
-            -keystore ~/.android/debug.keystore \
-            -storepass android \
-            -keypass android \
-            -dname "CN=Android Debug,O=Android,C=US"
 
       # 4️⃣ Extract SHA-1 into file
-      - name: Get Debug SHA-1
+      - name: Get  SHA
         run: |
-          keytool -list -v \
-            -keystore ~/.android/debug.keystore \
-            -alias androiddebugkey \
-            -storepass android \
-            -keypass android | grep SHA1 > SHA1.txt
-
-      # 5️⃣ Commit file back to repo
-      - name: Commit SHA File
-        run: |
-          git config user.name "github-actions"
-          git config user.email "actions@github.com"
-          git add SHA1.txt
-          git commit -m "Add debug SHA fingerprint" || echo "No changes to commit"
-          git push
+          keytool -list -v -keystore /app/android/upload-keystore.jks -alias upload
