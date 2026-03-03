@@ -1,4 +1,4 @@
-name: Build Flutter APK
+name: Build Signed Flutter APK
 
 on:
   push:
@@ -24,19 +24,27 @@ jobs:
         with:
           channel: stable
 
-      - name: Flutter doctor
-        run: flutter doctor -v
+      - name: Decode Keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 -d > app/upload-keystore.jks
+
+      - name: Create key.properties
+        run: |
+          echo "storePassword=${{ secrets.KEYSTORE_PASSWORD }}" > app/android/key.properties
+          echo "keyPassword=${{ secrets.KEY_PASSWORD }}" >> app/android/key.properties
+          echo "keyAlias=${{ secrets.KEY_ALIAS }}" >> app/android/key.properties
+          echo "storeFile=../upload-keystore.jks" >> app/android/key.properties
 
       - name: Install dependencies
         run: flutter pub get
         working-directory: app
 
-      - name: Build APK
+      - name: Build Signed APK
         run: flutter build apk --release
         working-directory: app
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-apk
+          name: signed-release-apk
           path: app/build/app/outputs/flutter-apk/app-release.apk
