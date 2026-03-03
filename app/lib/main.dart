@@ -22,33 +22,8 @@ class MyApp extends StatelessWidget {
       title: 'Fixo.go',
       themeMode: ThemeMode.system,
       theme: ThemeData.dark(),
-      home: const AuthWrapper(),
+      home: const SplashScreen(),
     );
   }
 }
 
-// ✅ Auto Login Wrapper
-class AuthWrapper extends StatelessWidget {
-  const AuthWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SplashScreen();
-        }
-
-        if (snapshot.hasData) {
-          // User already logged in
-          return const HomeScreen();
-        }
-
-        // Not logged in
-        return const LoginScreen();
-      },
-    );
-  }
-}
