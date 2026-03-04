@@ -3,7 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'home.dart';
-import 'models/user_model.dart';
+import '../models/user_model.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
   final String phone;
@@ -21,52 +21,81 @@ class CompleteProfileScreen extends StatefulWidget {
 class _CompleteProfileScreenState
     extends State<CompleteProfileScreen> {
 
-  final nameController = TextEditingController();
+  final TextEditingController nameController = TextEditingController();
+
   bool loading = false;
 
   Future<void> saveProfile() async {
 
+    if (loading) return;
+
     final name = nameController.text.trim();
 
     if (name.length < 3) {
-      _show("Enter valid name");
+      _show("Enter a valid name");
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+
+    if (user == null) {
+      _show("User not authenticated");
       return;
     }
 
     setState(() => loading = true);
 
-    final user = FirebaseAuth.instance.currentUser!;
-    final uid = user.uid;
+    try {
 
-    final avatarUrl =
-        "https://ui-avatars.com/api/?name=$name&background=0D8ABC&color=fff";
+      final avatarUrl =
+          "https://ui-avatars.com/api/?name=$name&background=0D8ABC&color=fff";
 
-    final userModel = UserModel(
-      uid: uid,
-      name: name,
-      phone: widget.phone,
-      role: "user",
-      avatar: avatarUrl,
-      createdAt: Timestamp.now(),
-    );
+      final userModel = UserModel(
+        uid: user.uid,
+        name: name,
+        phone: widget.phone,
+        role: "user",
+        avatar: avatarUrl,
+        createdAt: Timestamp.now(),
+      );
 
-    await FirebaseFirestore.instance
-        .collection("users")
-        .doc(uid)
-        .set(userModel.toMap());
+      await FirebaseFirestore.instance
+          .collection("users")
+          .doc(user.uid)
+          .set(userModel.toMap());
 
-    Navigator.pushAndRemoveUntil(
-      context,
-      MaterialPageRoute(
-        builder: (_) => const HomeScreen(),
-      ),
-      (_) => false,
-    );
+      if (!mounted) return;
+
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (_) => const HomeScreen(),
+        ),
+        (route) => false,
+      );
+
+    } catch (e) {
+
+      _show("Error saving profile");
+
+    } finally {
+
+      if (mounted) {
+        setState(() => loading = false);
+      }
+
+    }
   }
 
   void _show(String msg) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(msg)));
+  }
+
+  @override
+  void dispose() {
+    nameController.dispose();
+    super.dispose();
   }
 
   @override
@@ -85,7 +114,7 @@ class _CompleteProfileScreenState
                 "Complete Profile",
                 style: TextStyle(
                   color: Colors.white,
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -94,17 +123,14 @@ class _CompleteProfileScreenState
 
               TextField(
                 controller: nameController,
-                style:
-                    const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
                   hintText: "Enter your name",
-                  hintStyle:
-                      const TextStyle(color: Colors.white54),
+                  hintStyle: const TextStyle(color: Colors.white54),
                   filled: true,
                   fillColor: Colors.grey[900],
                   border: OutlineInputBorder(
-                    borderRadius:
-                        BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
               ),
@@ -117,7 +143,14 @@ class _CompleteProfileScreenState
                 child: ElevatedButton(
                   onPressed: loading ? null : saveProfile,
                   child: loading
-                      ? const CircularProgressIndicator()
+                      ? const SizedBox(
+                          height: 22,
+                          width: 22,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
                       : const Text("Continue"),
                 ),
               ),
