@@ -18,7 +18,7 @@ dependencies:
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
   geolocator: ^14.0.2
-  geoflutterfire2: ^1.0.0
+  geoflutterfire2: ^2.3.15
   dio: ^5.9.0
   dynamic_color: ^1.7.0
 
