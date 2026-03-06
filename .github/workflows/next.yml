@@ -34,9 +34,14 @@ jobs:
         run: flutter doctor -v
 
       - name: update all dep
-        working-directory: app
+        working-directory: app/user
         run: |
-         flutter pub get 
+         flutter pub upgrade 
+
+      - name: update all dep
+        working-directory: app/mechanic
+        run: |
+         flutter pub upgrade 
 
       - name: Commit
         run: |
