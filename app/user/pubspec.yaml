@@ -1,31 +1,48 @@
 name: fixo_user
-version: 1.0.0+1
-publish_to: 'none'
 description: FIXO.GO user app
+publish_to: 'none'
+version: 1.0.0+1
 
 environment:
-  sdk: ^3.3.0
+  sdk: ">=3.3.0 <4.0.0"
 
 dependencies:
   flutter:
     sdk: flutter
+
   cupertino_icons: ^1.0.8
-  firebase_core: ^2.19.0
-  firebase_auth: ^6.1.4
-  cloud_firestore: ^4.9.0
+
+  # Firebase (compatible generation)
+  firebase_core: ^2.25.4
+  firebase_auth: ^4.19.6
+  cloud_firestore: ^4.17.5
+
+  # State management
   flutter_riverpod: ^2.6.1
+
+  # Routing
   go_router: ^14.8.1
+
+  # Maps
   flutter_map: ^8.2.2
   latlong2: ^0.9.1
-  geolocator: ^14.0.2
+
+  # Location
+  geolocator: ^10.1.1
+
+  # Geo queries
   geoflutterfire2: ^2.3.15
-  dio: ^5.9.0
+
+  # Networking
+  dio: ^5.4.3
+
+  # Material You
   dynamic_color: ^1.7.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^6.0.0
+  flutter_lints: ^3.0.2
 
 flutter:
   uses-material-design: true
