@@ -14,13 +14,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(path: '/', pageBuilder: (context, state) => _animatedPage(state, const AuthGate())),
       GoRoute(path: '/login', pageBuilder: (context, state) => _animatedPage(state, const LoginPage())),
-      GoRoute(
-        path: '/otp',
-        pageBuilder: (context, state) {
-          final verificationId = state.uri.queryParameters['vid'] ?? '';
-          return _animatedPage(state, OtpPage(verificationId: verificationId));
-        },
-      ),
+
       GoRoute(path: '/home', pageBuilder: (context, state) => _animatedPage(state, const HomePage())),
       GoRoute(path: '/incoming', pageBuilder: (context, state) => _animatedPage(state, const IncomingRequestsPage())),
       GoRoute(path: '/profile', pageBuilder: (context, state) => _animatedPage(state, const ProfilePage())),

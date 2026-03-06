@@ -1,50 +1,35 @@
 import "./globals.css";
-import { Inter, Space_Grotesk } from "next/font/google";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-body",
-});
-
-const grotesk = Space_Grotesk({
-  subsets: ["latin"],
-  variable: "--font-heading",
-});
 
 export const metadata = {
-  title: "FIXO.GO — Instant Roadside Assistance App",
+  title: "FIXO.GO — Instant Roadside Assistance",
   description:
-    "FIXO.GO connects drivers to nearby mechanics instantly with SOS and live tracking.",
+    "FIXO.GO connects drivers to nearby mechanics instantly with SOS dispatch, quotes, and live tracking.",
   openGraph: {
     title: "FIXO.GO",
-    description: "One-tap roadside help",
+    description: "One-tap roadside help with live mechanic tracking.",
     type: "website",
   },
 };
 
-
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <head>
-        <meta name="google-site-verification" content="7SnpTJD94MylkjVp3A2GY9wDF1Xhvs1yLkq_AH7nJxQ" />
-      </head>
-      <body className={`${inter.variable} ${grotesk.variable}`}>
+      <body>
         {children}
         <script
-  type="application/ld+json"
-  dangerouslySetInnerHTML={{
-    __html: JSON.stringify({
-      "@context": "https://schema.org",
-      "@type": "MobileApplication",
-      name: "FIXO.GO",
-      applicationCategory: "TravelApplication",
-      operatingSystem: "Android",
-      description: "Emergency roadside assistance app",
-    }),
-  }}
-/>
-
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "MobileApplication",
+              name: "FIXO.GO",
+              applicationCategory: "UtilitiesApplication",
+              operatingSystem: "Android",
+              description:
+                "Emergency roadside assistance marketplace connecting users to nearby mechanics.",
+            }),
+          }}
+        />
       </body>
     </html>
   );

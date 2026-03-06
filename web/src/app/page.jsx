@@ -1,161 +1,153 @@
 "use client";
+
+import Link from "next/link";
 import { motion } from "framer-motion";
+
+const features = [
+  {
+    title: "Smart Dispatch",
+    description: "Requests are matched to nearby verified mechanics to reduce wait time.",
+    icon: "🧭",
+  },
+  {
+    title: "Live Tracking",
+    description: "Track mechanic movement, ETA, and status updates in real time.",
+    icon: "📍",
+  },
+  {
+    title: "Transparent Quotes",
+    description: "Receive multiple quotes and select the best price with confidence.",
+    icon: "💬",
+  },
+  {
+    title: "Mechanic Earnings",
+    description: "Mechanics manage jobs, availability, and earnings from one dashboard.",
+    icon: "🛠️",
+  },
+];
+
+const steps = [
+  "Choose service type and share pickup location.",
+  "Nearby mechanics receive request and send quotes.",
+  "Pick your mechanic, track arrival, and complete service.",
+];
 
 export default function Home() {
   return (
-    <main>
-
-      {/* NAV */}
-      <nav className="flex justify-between items-center px-6 py-5 max-w-6xl mx-auto">
-        <div className="text-xl font-bold tracking-wide">FIXO.GO</div>
-        <button className="bg-blue-600 px-5 py-2 rounded-lg text-sm font-semibold">
-          Early Access
-        </button>
-      </nav>
-
-      {/* HERO */}
-    <motion.section
-      initial={{ opacity: 0, y: 40 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.7 }}
-      className="text-center px-6 py-24 max-w-4xl mx-auto"
-    >
-  <h1 className="text-5xl md:text-6xl font-bold leading-tight mb-6">
-    When your vehicle stops —
-    <br /> Fixo.go starts instantly.
-   </h1>
-
-  <p className="text-gray-400 text-lg mb-10">
-    One-tap SOS roadside assistance with live mechanic tracking.
-  </p>
-
-  <div className="flex gap-4 justify-center">
-    <button className="bg-red-600 px-7 py-4 rounded-xl font-semibold">
-      Get Early Access
-    </button>
-    <button className="bg-zinc-800 px-7 py-4 rounded-xl border border-zinc-700">
-      Join as Mechanic
-    </button>
-  </div>
-</motion.section>
-
-    {/* About mobile app */}
-    <section className="px-6 py-24 max-w-6xl mx-auto grid md:grid-cols-2 gap-12 items-center">
-  <div>
-    <h2 className="text-4xl font-bold mb-6">
-      Built for Real Road Emergencies
-    </h2>
-
-    <ul className="space-y-4 text-gray-400">
-      <li>• One-tap SOS request</li>
-      <li>• Real-time mechanic tracking</li>
-      <li>• Car & bike support</li>
-      <li>• OTP login only — no passwords</li>
-      <li>• Dark-mode emergency UI</li>
-    </ul>
-  </div>
-
-  <div className="bg-zinc-900 rounded-2xl p-10 border border-zinc-800 text-center">
-    <div className="text-6xl mb-4">📱</div>
-    <p className="text-gray-400">
-      Android launch first. iOS next phase.
-    </p>
-  </div>
-</section>
-
-      {/* FEATURES */}
-      <section className="grid md:grid-cols-3 gap-8 px-6 py-20 max-w-6xl mx-auto">
-        {[
-          ["🚨", "Instant SOS", "Tap once and request help"],
-          ["📍", "Smart Matching", "Nearest mechanic auto-assigned"],
-          ["🛰️", "Live Tracking", "Real-time ETA & movement"],
-        ].map(([icon, title, text]) => (
-          <div key={title} className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800">
-            <div className="text-3xl mb-4">{icon}</div>
-            <h3 className="font-semibold mb-2">{title}</h3>
-            <p className="text-gray-400 text-sm">{text}</p>
-          </div>
-        ))}
-      </section>
-
-      {/* HOW IT WORKS */}
-      <section className="px-6 py-24 bg-zinc-950 text-center">
-        <h2 className="text-4xl font-bold mb-14">How It Works</h2>
-
-        <div className="grid md:grid-cols-3 gap-10 max-w-5xl mx-auto">
-          <Step n="1" t="Tap SOS" d="Send instant breakdown alert" />
-          <Step n="2" t="Get Matched" d="Nearby mechanic accepts" />
-          <Step n="3" t="Track Arrival" d="Live map tracking" />
+    <main className="site-shell">
+      <header className="top-nav">
+        <div className="brand">FIXO.GO</div>
+        <div className="nav-actions">
+          <a href="#waitlist" className="btn btn-secondary">
+            Join waitlist
+          </a>
+          <Link href="/terms" className="btn btn-ghost">Terms</Link>
+          <Link href="/privacy" className="btn btn-ghost">Privacy</Link>
+          <a href="#partners" className="btn btn-primary">
+            Become partner
+          </a>
         </div>
-      </section>
+      </header>
 
-      {/* MECHANIC SECTION */}
-      <section className="px-6 py-24 max-w-5xl mx-auto text-center">
-        <h2 className="text-4xl font-bold mb-6">
-          Built for Mechanics Too
-        </h2>
-
-        <p className="text-gray-400 mb-10">
-          Get nearby jobs. Go online anytime. Grow your local income.
+      <motion.section
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.55 }}
+        className="hero"
+      >
+        <p className="eyebrow">Roadside assistance marketplace</p>
+        <h1>Get roadside help in minutes, not hours.</h1>
+        <p className="hero-subtitle">
+          FIXO.GO connects drivers with nearby mechanics for puncture, towing, battery, fuel, and emergency
+          repairs with real-time tracking and transparent pricing.
         </p>
 
-        <button className="bg-blue-600 px-8 py-4 rounded-xl font-semibold">
-          Become Service Partner
-        </button>
-      </section>
+        <div className="hero-cta">
+          <a href="#waitlist" className="btn btn-primary">
+            Request early access
+          </a>
+          <a href="#how-it-works" className="btn btn-secondary">
+            See how it works
+          </a>
+        </div>
 
-      {/* TRUST */}
-      <section className="px-6 py-20 grid md:grid-cols-4 gap-6 max-w-6xl mx-auto text-center">
-        {["OTP Login", "Verified Mechanics", "Live Location", "Privacy Safe"].map(x => (
-          <div key={x} className="bg-zinc-900 p-6 rounded-xl border border-zinc-800 text-sm">
-            {x}
-          </div>
-        ))}
-      </section>
+        <div className="hero-stats" aria-label="platform metrics">
+          <Stat label="Response target" value="< 15 min" />
+          <Stat label="Service types" value="5+" />
+          <Stat label="Live tracking" value="24/7" />
+        </div>
+      </motion.section>
 
-      {/* WAITLIST */}
-      <section className="px-6 py-24 bg-zinc-950">
-        <div className="max-w-xl mx-auto text-center">
-          <h2 className="text-4xl font-bold mb-8">
-            Join Early Access
-          </h2>
-
-          <form className="space-y-4">
-            <Input placeholder="Name" />
-            <Input placeholder="Phone" />
-            <Input placeholder="City" />
-
-            <button className="w-full bg-red-600 py-4 rounded-xl font-semibold">
-              Join Waitlist
-            </button>
-          </form>
+      <section className="section" id="features">
+        <h2>Built for both drivers and mechanics</h2>
+        <p className="section-subtitle">
+          City-scale dispatch architecture with role-specific experiences for users and service partners.
+        </p>
+        <div className="feature-grid">
+          {features.map((item) => (
+            <article key={item.title} className="feature-card">
+              <span className="feature-icon" aria-hidden>
+                {item.icon}
+              </span>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
         </div>
       </section>
 
-      {/* FOOTER */}
-      <footer className="text-center text-gray-500 py-12 text-sm">
-        © {new Date().getFullYear()} FIXO.GO
-      </footer>
+      <section className="section section-alt" id="how-it-works">
+        <h2>How FIXO.GO works</h2>
+        <div className="step-grid">
+          {steps.map((step, index) => (
+            <div className="step" key={step}>
+              <span className="step-index">0{index + 1}</span>
+              <p>{step}</p>
+            </div>
+          ))}
+        </div>
+      </section>
 
+      <section className="section" id="partners">
+        <h2>Grow your mechanic business</h2>
+        <p className="section-subtitle">
+          Go online when you want, receive nearby jobs, submit quotes, and track monthly earnings.
+        </p>
+        <a href="#waitlist" className="btn btn-primary">
+          Join as service partner
+        </a>
+      </section>
+
+      <section className="section section-alt" id="waitlist">
+        <h2>Get launch updates</h2>
+        <p className="section-subtitle">Sign up for early access for users and mechanics.</p>
+        <form className="waitlist-form" onSubmit={(event) => event.preventDefault()}>
+          <input type="text" placeholder="Full name" required />
+          <input type="email" placeholder="Email" required />
+          <input type="text" placeholder="City" required />
+          <button type="submit" className="btn btn-primary btn-block">
+            Submit
+          </button>
+        </form>
+      </section>
+
+      <footer className="footer">
+        <div>© {new Date().getFullYear()} FIXO.GO. All rights reserved.</div>
+        <div className="footer-links">
+          <Link href="/terms">Terms of Service</Link>
+          <span>•</span>
+          <Link href="/privacy">Privacy Policy</Link>
+        </div>
+      </footer>
     </main>
   );
 }
 
-function Step({ n, t, d }) {
+function Stat({ label, value }) {
   return (
-    <div>
-      <div className="text-blue-500 font-bold mb-3">Step {n}</div>
-      <h3 className="font-semibold mb-2">{t}</h3>
-      <p className="text-gray-400 text-sm">{d}</p>
+    <div className="stat-card">
+      <span className="stat-value">{value}</span>
+      <span className="stat-label">{label}</span>
     </div>
-  );
-}
-
-function Input(props) {
-  return (
-    <input
-      {...props}
-      className="w-full p-4 rounded-xl bg-zinc-900 border border-zinc-800"
-    />
   );
 }
