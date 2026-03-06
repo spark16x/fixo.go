@@ -19,24 +19,14 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _save() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    final name = _nameController.text.trim();
-    if (name.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name is required.')),
-      );
-      return;
-    }
-
     setState(() => _saving = true);
     await FirebaseFirestore.instance.collection(FirestorePaths.users).doc(user.uid).set({
       'uid': user.uid,
-      'name': name,
-      'email': user.email,
+      'name': _nameController.text.trim(),
+      'phone': user.phoneNumber,
       'role': 'user',
       'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-
     if (mounted) context.go('/home');
   }
 

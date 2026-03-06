@@ -35,7 +35,7 @@ jobs:
       - name: Extract SHA fingerprints
         working-directory: app/user
         run: |
-          keytool -list -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
+          keytool  -printcert -jarfile build/app/outputs/flutter-apk/app-release.apk
         
       - name: Upload APK
         uses: actions/upload-artifact@v4

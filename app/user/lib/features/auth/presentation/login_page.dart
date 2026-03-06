@@ -12,35 +12,23 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
+  final _controller = TextEditingController(text: '+91');
   bool _loading = false;
 
   @override
   void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
-  Future<void> _submit() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (!email.contains('@') || password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email and password (min 6 characters).')),
-      );
-      return;
-    }
-
+  Future<void> _sendOtp() async {
     setState(() => _loading = true);
     try {
-      await ref.read(authRepositoryProvider).signInOrRegister(email: email, password: password);
-      if (mounted) context.go('/');
+      final id = await ref.read(authRepositoryProvider).sendOtp(_controller.text.trim());
+      if (mounted) context.go('/otp?vid=$id&phone=${Uri.encodeComponent(_controller.text.trim())}');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Authentication failed: $e')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('OTP failed: $e')));
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -49,32 +37,14 @@ class _LoginPageState extends ConsumerState<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login with Email')),
+      appBar: AppBar(title: const Text('Login')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: _passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(labelText: 'Password'),
-            ),
+            TextField(controller: _controller, decoration: const InputDecoration(labelText: 'Phone Number')),
             const SizedBox(height: 16),
-            FilledButton(
-              onPressed: _loading ? null : _submit,
-              child: Text(_loading ? 'Please wait...' : 'Continue'),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'If account does not exist, it will be created automatically.',
-              textAlign: TextAlign.center,
-            ),
+            FilledButton(onPressed: _loading ? null : _sendOtp, child: Text(_loading ? 'Sending...' : 'Send OTP')),
           ],
         ),
       ),

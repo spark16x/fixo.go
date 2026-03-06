@@ -17,27 +17,16 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _save() async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
-
-    final name = _nameController.text.trim();
-    final workshop = _workshopController.text.trim();
-    if (name.isEmpty || workshop.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Name and workshop are required.')),
-      );
-      return;
-    }
-
     await FirebaseFirestore.instance.collection('users').doc(user.uid).set({
       'uid': user.uid,
-      'name': name,
-      'workshop': workshop,
-      'email': user.email,
+      'name': _nameController.text.trim(),
+      'workshop': _workshopController.text.trim(),
+      'phone': user.phoneNumber,
       'role': 'mechanic',
       'isOnline': false,
       'serviceTypes': ['puncture', 'towing', 'battery', 'fuel', 'mechanic_help'],
       'createdAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
-
     if (mounted) context.go('/home');
   }
 

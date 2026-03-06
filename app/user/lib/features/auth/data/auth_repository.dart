@@ -1,22 +1,35 @@
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthRepository {
   AuthRepository(this._auth);
-
   final FirebaseAuth _auth;
 
   Stream<User?> authStateChanges() => _auth.authStateChanges();
+  User? get currentUser => _auth.currentUser;
 
-  Future<void> signInOrRegister({required String email, required String password}) async {
-    try {
-      await _auth.signInWithEmailAndPassword(email: email, password: password);
-    } on FirebaseAuthException catch (error) {
-      if (error.code == 'user-not-found' || error.code == 'invalid-credential') {
-        await _auth.createUserWithEmailAndPassword(email: email, password: password);
-      } else {
-        rethrow;
-      }
-    }
+  Future<String> sendOtp(String phoneNumber) async {
+    final completer = Completer<String>();
+    await _auth.verifyPhoneNumber(
+      phoneNumber: phoneNumber,
+      verificationCompleted: (credential) async {
+        await _auth.signInWithCredential(credential);
+      },
+      verificationFailed: (e) => completer.completeError(e),
+      codeSent: (verificationId, _) => completer.complete(verificationId),
+      codeAutoRetrievalTimeout: (verificationId) {
+        if (!completer.isCompleted) completer.complete(verificationId);
+      },
+    );
+    return completer.future;
+  }
+
+  Future<void> verifyOtp({required String verificationId, required String smsCode}) async {
+    final credential = PhoneAuthProvider.credential(
+      verificationId: verificationId,
+      smsCode: smsCode,
+    );
+    await _auth.signInWithCredential(credential);
   }
 
   Future<void> logout() => _auth.signOut();

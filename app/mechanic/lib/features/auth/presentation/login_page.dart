@@ -12,38 +12,11 @@ class LoginPage extends ConsumerStatefulWidget {
 }
 
 class _LoginPageState extends ConsumerState<LoginPage> {
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  bool _loading = false;
+  final _phoneController = TextEditingController(text: '+91');
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
-  }
-
-  Future<void> _submit() async {
-    final email = _emailController.text.trim();
-    final password = _passwordController.text.trim();
-
-    if (!email.contains('@') || password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Enter a valid email and password (min 6 characters).')),
-      );
-      return;
-    }
-
-    setState(() => _loading = true);
-    try {
-      await ref.read(authServiceProvider).signInOrRegister(email, password);
-      if (mounted) context.go('/');
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Authentication failed: $e')));
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+  Future<void> _send() async {
+    final id = await ref.read(otpServiceProvider).sendOtp(_phoneController.text.trim());
+    if (mounted) context.go('/otp?vid=$id');
   }
 
   @override
@@ -53,19 +26,9 @@ class _LoginPageState extends ConsumerState<LoginPage> {
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(children: [
-          TextField(
-            controller: _emailController,
-            keyboardType: TextInputType.emailAddress,
-            decoration: const InputDecoration(labelText: 'Email'),
-          ),
-          const SizedBox(height: 12),
-          TextField(
-            controller: _passwordController,
-            obscureText: true,
-            decoration: const InputDecoration(labelText: 'Password'),
-          ),
+          TextField(controller: _phoneController, decoration: const InputDecoration(labelText: 'Phone')),
           const SizedBox(height: 16),
-          FilledButton(onPressed: _loading ? null : _submit, child: Text(_loading ? 'Please wait...' : 'Continue')),
+          FilledButton(onPressed: _send, child: const Text('Send OTP')),
         ]),
       ),
     );
