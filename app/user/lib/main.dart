@@ -1,28 +1,38 @@
-import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:dynamic_color/dynamic_color.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'core/navigation/app_router.dart';
+import 'core/theme/app_theme.dart';
 
-import 'screens/splash.dart';
-
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(const MyApp());
+  runApp(const ProviderScope(child: FixoUserApp()));
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class FixoUserApp extends ConsumerWidget {
+  const FixoUserApp({super.key});
 
-  // This widget is the root of your application.
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Fixo.go',
-      themeMode: ThemeMode.system,
-      theme: ThemeData.dark(),
-      home: const SplashScreen(),
+  Widget build(BuildContext context, WidgetRef ref) {
+    final router = ref.watch(appRouterProvider);
+    return DynamicColorBuilder(
+      builder: (ColorScheme? lightDynamic, ColorScheme? darkDynamic) {
+        return MaterialApp.router(
+          title: 'FIXO.GO User',
+          themeMode: ThemeMode.system,
+          theme: lightDynamic != null
+              ? AppTheme.lightFromScheme(lightDynamic)
+              : AppTheme.lightFallback(),
+          darkTheme: darkDynamic != null
+              ? AppTheme.darkFromScheme(darkDynamic)
+              : AppTheme.darkFallback(),
+          debugShowCheckedModeBanner: false,
+          routerConfig: router,
+        );
+      },
     );
   }
 }
-
