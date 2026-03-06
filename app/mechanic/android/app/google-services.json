@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "379745295322",
+    "firebase_url": "https://fixogo-bd143-default-rtdb.asia-southeast1.firebasedatabase.app",
     "project_id": "fixogo-bd143",
     "storage_bucket": "fixogo-bd143.firebasestorage.app"
   },
@@ -10,6 +11,25 @@
         "mobilesdk_app_id": "1:379745295322:android:8e6a2a22bc8c777b273ee3",
         "android_client_info": {
           "package_name": "com.spark16x.fixogo"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_0SmPUebIwREtqa7qUjemF8YoOymOKYg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:379745295322:android:aeac8fe8b521bbbd273ee3",
+        "android_client_info": {
+          "package_name": "com.spark16x.fixogo.mechanic"
         }
       },
       "oauth_client": [],
