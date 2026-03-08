@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:go_router/go_router.dart';
 
 import 'login.dart';
 import 'home.dart';
@@ -46,10 +46,8 @@ class _SplashScreenState extends State<SplashScreen>
 
     // Automatically navigate to the home page after a delay
     Timer(const Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthWrapper()),
-      );
+      if (!mounted) return;
+      context.go('/auth');
     });
   }
 

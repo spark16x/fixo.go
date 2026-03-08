@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 
-import 'complete_profile.dart';
-import 'home.dart';
 
 class OtpScreen extends StatefulWidget {
   final String verificationId;
@@ -48,23 +47,16 @@ class _OtpScreenState extends State<OtpScreen> {
 
     if (!userDoc.exists) {
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => CompleteProfileScreen(
-            phone: userCredential.user!.phoneNumber!,
-          ),
-        ),
-      );
+      final phone = userCredential.user?.phoneNumber ?? '';
+      final route = Uri(
+        path: '/complete-profile',
+        queryParameters: {'phone': phone},
+      ).toString();
+      context.go(route);
 
     } else {
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        ),
-      );
+      context.go('/home');
     }
   }
 
