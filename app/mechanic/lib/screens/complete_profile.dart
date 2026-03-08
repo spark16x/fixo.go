@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:go_router/go_router.dart';
 
-import 'home.dart';
 import '../models/user_model.dart';
 
 class CompleteProfileScreen extends StatefulWidget {
@@ -66,13 +66,7 @@ class _CompleteProfileScreenState
 
       if (!mounted) return;
 
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const HomeScreen(),
-        ),
-        (route) => false,
-      );
+      context.go('/home');
 
     } catch (e) {
 
