@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
+import '../core/navigation/app_router.dart';
 
 import '../models/user_model.dart';
 
@@ -66,7 +66,7 @@ class _CompleteProfileScreenState
 
       if (!mounted) return;
 
-      context.go('/home');
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.home, (route) => false);
 
     } catch (e) {
 

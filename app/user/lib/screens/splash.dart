@@ -2,10 +2,10 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:go_router/go_router.dart';
 
-import 'login.dart';
+import '../core/navigation/app_router.dart';
 import 'home.dart';
+import 'login.dart';
 
 
 class SplashScreen extends StatefulWidget {
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen>
     // Automatically navigate to the home page after a delay
     Timer(const Duration(seconds: 3), () {
       if (!mounted) return;
-      context.go('/auth');
+      Navigator.of(context).pushReplacementNamed(AppRouter.auth);
     });
   }
 
