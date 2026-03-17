@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:go_router/go_router.dart';
+import '../core/navigation/app_router.dart';
 
 
 class OtpScreen extends StatefulWidget {
@@ -48,15 +48,15 @@ class _OtpScreenState extends State<OtpScreen> {
     if (!userDoc.exists) {
 
       final phone = userCredential.user?.phoneNumber ?? '';
-      final route = Uri(
-        path: '/complete-profile',
-        queryParameters: {'phone': phone},
-      ).toString();
-      context.go(route);
+      Navigator.of(context).pushNamedAndRemoveUntil(
+        AppRouter.completeProfile,
+        (route) => false,
+        arguments: phone,
+      );
 
     } else {
 
-      context.go('/home');
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.home, (route) => false);
     }
   }
 
