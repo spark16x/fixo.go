@@ -34,14 +34,10 @@ jobs:
         run: flutter doctor -v
 
       - name: update all dep
-        working-directory: app/user
+        working-directory: web
         run: |
-         flutter pub upgrade 
+         npm install animejs lenis 
 
-      - name: update all dep
-        working-directory: app/mechanic
-        run: |
-         flutter pub upgrade 
 
       - name: Commit
         run: |

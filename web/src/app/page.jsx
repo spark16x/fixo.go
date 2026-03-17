@@ -1,153 +1,336 @@
 "use client";
 
-import Link from "next/link";
-import { motion } from "framer-motion";
+import { useEffect } from "react"
+import anime from "animejs"
+import Link from "next/link"
+import smoothScroll from "../lib/smoothScroll"
 
 const features = [
-  {
-    title: "Smart Dispatch",
-    description: "Requests are matched to nearby verified mechanics to reduce wait time.",
-    icon: "🧭",
-  },
-  {
-    title: "Live Tracking",
-    description: "Track mechanic movement, ETA, and status updates in real time.",
-    icon: "📍",
-  },
-  {
-    title: "Transparent Quotes",
-    description: "Receive multiple quotes and select the best price with confidence.",
-    icon: "💬",
-  },
-  {
-    title: "Mechanic Earnings",
-    description: "Mechanics manage jobs, availability, and earnings from one dashboard.",
-    icon: "🛠️",
-  },
-];
+{
+title:"Smart Dispatch",
+description:"Requests instantly route to the nearest verified mechanics.",
+icon:"🧭"
+},
+{
+title:"Live Tracking",
+description:"Track mechanic arrival with real-time GPS updates.",
+icon:"📍"
+},
+{
+title:"Transparent Quotes",
+description:"Compare prices from nearby mechanics before accepting.",
+icon:"💬"
+},
+{
+title:"Mechanic Earnings",
+description:"Mechanics manage jobs, quotes and monthly income.",
+icon:"🛠️"
+}
+]
 
-const steps = [
-  "Choose service type and share pickup location.",
-  "Nearby mechanics receive request and send quotes.",
-  "Pick your mechanic, track arrival, and complete service.",
-];
+const steps=[
+"Choose your service and share your location.",
+"Nearby mechanics receive your request instantly.",
+"Select a quote and track mechanic arrival."
+]
 
-export default function Home() {
-  return (
-    <main className="site-shell">
-      <header className="top-nav">
-        <div className="brand">FIXO.GO</div>
-        <div className="nav-actions">
-          <a href="#waitlist" className="btn btn-secondary">
-            Join waitlist
-          </a>
-          <Link href="/terms" className="btn btn-ghost">Terms</Link>
-          <Link href="/privacy" className="btn btn-ghost">Privacy</Link>
-          <a href="#partners" className="btn btn-primary">
-            Become partner
-          </a>
-        </div>
-      </header>
+export default function Home(){
 
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.55 }}
-        className="hero"
-      >
-        <p className="eyebrow">Roadside assistance marketplace</p>
-        <h1>Get roadside help in minutes, not hours.</h1>
-        <p className="hero-subtitle">
-          FIXO.GO connects drivers with nearby mechanics for puncture, towing, battery, fuel, and emergency
-          repairs with real-time tracking and transparent pricing.
-        </p>
+useEffect(()=>{
 
-        <div className="hero-cta">
-          <a href="#waitlist" className="btn btn-primary">
-            Request early access
-          </a>
-          <a href="#how-it-works" className="btn btn-secondary">
-            See how it works
-          </a>
-        </div>
+smoothScroll()
 
-        <div className="hero-stats" aria-label="platform metrics">
-          <Stat label="Response target" value="< 15 min" />
-          <Stat label="Service types" value="5+" />
-          <Stat label="Live tracking" value="24/7" />
-        </div>
-      </motion.section>
+/* SCROLL PROGRESS */
 
-      <section className="section" id="features">
-        <h2>Built for both drivers and mechanics</h2>
-        <p className="section-subtitle">
-          City-scale dispatch architecture with role-specific experiences for users and service partners.
-        </p>
-        <div className="feature-grid">
-          {features.map((item) => (
-            <article key={item.title} className="feature-card">
-              <span className="feature-icon" aria-hidden>
-                {item.icon}
-              </span>
-              <h3>{item.title}</h3>
-              <p>{item.description}</p>
-            </article>
-          ))}
-        </div>
-      </section>
+window.addEventListener("scroll",()=>{
+const scrolled=window.scrollY/
+(document.body.scrollHeight-window.innerHeight)
 
-      <section className="section section-alt" id="how-it-works">
-        <h2>How FIXO.GO works</h2>
-        <div className="step-grid">
-          {steps.map((step, index) => (
-            <div className="step" key={step}>
-              <span className="step-index">0{index + 1}</span>
-              <p>{step}</p>
-            </div>
-          ))}
-        </div>
-      </section>
+document.querySelector(".scroll-progress").style.width=scrolled*100+"%"
+})
 
-      <section className="section" id="partners">
-        <h2>Grow your mechanic business</h2>
-        <p className="section-subtitle">
-          Go online when you want, receive nearby jobs, submit quotes, and track monthly earnings.
-        </p>
-        <a href="#waitlist" className="btn btn-primary">
-          Join as service partner
-        </a>
-      </section>
+/* SCROLL REVEAL */
 
-      <section className="section section-alt" id="waitlist">
-        <h2>Get launch updates</h2>
-        <p className="section-subtitle">Sign up for early access for users and mechanics.</p>
-        <form className="waitlist-form" onSubmit={(event) => event.preventDefault()}>
-          <input type="text" placeholder="Full name" required />
-          <input type="email" placeholder="Email" required />
-          <input type="text" placeholder="City" required />
-          <button type="submit" className="btn btn-primary btn-block">
-            Submit
-          </button>
-        </form>
-      </section>
+const observer=new IntersectionObserver((entries)=>{
+entries.forEach((entry)=>{
 
-      <footer className="footer">
-        <div>© {new Date().getFullYear()} FIXO.GO. All rights reserved.</div>
-        <div className="footer-links">
-          <Link href="/terms">Terms of Service</Link>
-          <span>•</span>
-          <Link href="/privacy">Privacy Policy</Link>
-        </div>
-      </footer>
-    </main>
-  );
+if(!entry.isIntersecting)return
+
+anime({
+targets:entry.target,
+translateY:[60,0],
+opacity:[0,1],
+duration:900,
+easing:"easeOutExpo"
+})
+
+observer.unobserve(entry.target)
+
+})
+},{threshold:.2})
+
+document.querySelectorAll(".reveal").forEach(el=>{
+observer.observe(el)
+})
+
+/* MAGNETIC BUTTON */
+
+document.querySelectorAll(".btn").forEach(btn=>{
+
+btn.addEventListener("mousemove",(e)=>{
+
+const rect=btn.getBoundingClientRect()
+
+const x=e.clientX-rect.left-rect.width/2
+const y=e.clientY-rect.top-rect.height/2
+
+anime({
+targets:btn,
+translateX:x*.2,
+translateY:y*.2,
+duration:400,
+easing:"easeOutQuad"
+})
+
+})
+
+btn.addEventListener("mouseleave",()=>{
+
+anime({
+targets:btn,
+translateX:0,
+translateY:0,
+duration:400
+})
+
+})
+
+})
+
+},[])
+
+return(
+
+<main className="site-shell">
+
+<div className="scroll-progress"/>
+
+<header className="top-nav">
+
+<div className="brand">FIXO.GO</div>
+
+<div className="nav-actions">
+
+<a href="#waitlist" className="btn btn-secondary">
+Join waitlist
+</a>
+
+<Link href="/terms" className="btn btn-ghost">
+Terms
+</Link>
+
+<Link href="/privacy" className="btn btn-ghost">
+Privacy
+</Link>
+
+<a href="#partners" className="btn btn-primary">
+Become partner
+</a>
+
+</div>
+
+</header>
+
+{/* HERO */}
+
+<section className="hero reveal">
+
+<div className="particles">
+
+{Array.from({length:20}).map((_,i)=>(
+<span key={i}/>
+))}
+
+</div>
+
+<p className="eyebrow">
+Roadside assistance marketplace
+</p>
+
+<h1>
+Get roadside help in minutes,
+not hours.
+</h1>
+
+<p className="hero-subtitle">
+
+FIXO.GO connects drivers with nearby mechanics
+for puncture, towing, battery, fuel, and emergency repairs.
+
+</p>
+
+<div className="hero-cta">
+
+<a href="#waitlist" className="btn btn-primary">
+Request early access
+</a>
+
+<a href="#how-it-works" className="btn btn-secondary">
+See how it works
+</a>
+
+</div>
+
+<div className="hero-stats">
+
+<Stat label="Response target" value="<15 min"/>
+<Stat label="Service types" value="5+"/>
+<Stat label="Live tracking" value="24/7"/>
+
+</div>
+
+</section>
+
+{/* FEATURES */}
+
+<section className="section">
+
+<h2 className="reveal">
+Built for drivers and mechanics
+</h2>
+
+<p className="section-subtitle reveal">
+City-scale roadside dispatch platform
+</p>
+
+<div className="feature-grid">
+
+{features.map(item=>(
+<article key={item.title}
+className="feature-card reveal">
+
+<span className="feature-icon">
+{item.icon}
+</span>
+
+<h3>{item.title}</h3>
+
+<p>{item.description}</p>
+
+</article>
+))}
+
+</div>
+
+</section>
+
+{/* HOW IT WORKS */}
+
+<section id="how-it-works"
+className="section section-alt">
+
+<h2 className="reveal">
+How FIXO.GO works
+</h2>
+
+<div className="step-grid">
+
+{steps.map((step,index)=>(
+<div key={step}
+className="step reveal">
+
+<span className="step-index">
+0{index+1}
+</span>
+
+<p>{step}</p>
+
+</div>
+))}
+
+</div>
+
+</section>
+
+{/* PARTNERS */}
+
+<section id="partners"
+className="section">
+
+<h2 className="reveal">
+Grow your mechanic business
+</h2>
+
+<p className="section-subtitle reveal">
+Receive nearby jobs and manage your earnings.
+</p>
+
+<a href="#waitlist"
+className="btn btn-primary reveal">
+Join as service partner
+</a>
+
+</section>
+
+{/* WAITLIST */}
+
+<section id="waitlist"
+className="section section-alt">
+
+<h2 className="reveal">
+Get launch updates
+</h2>
+
+<form className="waitlist-form reveal">
+
+<input type="text"
+placeholder="Full name"
+required/>
+
+<input type="email"
+placeholder="Email"
+required/>
+
+<input type="text"
+placeholder="City"
+required/>
+
+<button className="btn btn-primary btn-block">
+Submit
+</button>
+
+</form>
+
+</section>
+
+<footer className="footer">
+
+<div>
+© {new Date().getFullYear()} FIXO.GO
+</div>
+
+</footer>
+
+</main>
+
+)
 }
 
-function Stat({ label, value }) {
-  return (
-    <div className="stat-card">
-      <span className="stat-value">{value}</span>
-      <span className="stat-label">{label}</span>
-    </div>
-  );
+function Stat({label,value}){
+
+return(
+
+<div className="stat-card reveal">
+
+<span className="stat-value">
+{value}
+</span>
+
+<span className="stat-label">
+{label}
+</span>
+
+</div>
+
+)
 }
