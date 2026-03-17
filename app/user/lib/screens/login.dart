@@ -1,6 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
+import '../core/navigation/app_router.dart';
 
 import '../components/auth_action_button.dart';
 import '../components/auth_text_field.dart';
@@ -44,7 +44,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
 
       if (!mounted) return;
-      context.go('/home');
+      Navigator.of(context).pushNamedAndRemoveUntil(AppRouter.home, (route) => false);
     } on FirebaseAuthException catch (e) {
       _show(e.message ?? 'Authentication failed');
     } finally {
