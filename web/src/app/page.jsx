@@ -1,117 +1,116 @@
 "use client";
 
-import { useEffect } from "react"
-import anime from "animejs"
-import Link from "next/link"
-import smoothScroll from "../lib/smoothScroll"
+import { useEffect } from "react";
+import { animate } from "animatejs";
+import Link from "next/link";
+import smoothScroll from "../lib/smoothScroll";
 
 const features = [
 {
-title:"Smart Dispatch",
-description:"Requests instantly route to the nearest verified mechanics.",
-icon:"🧭"
+  title: "Smart Dispatch",
+  description: "Requests instantly route to the nearest verified mechanics.",
+  icon: "🧭"
 },
 {
-title:"Live Tracking",
-description:"Track mechanic arrival with real-time GPS updates.",
-icon:"📍"
+  title: "Live Tracking",
+  description: "Track mechanic arrival with real-time GPS updates.",
+  icon: "📍"
 },
 {
-title:"Transparent Quotes",
-description:"Compare prices from nearby mechanics before accepting.",
-icon:"💬"
+  title: "Transparent Quotes",
+  description: "Compare prices from nearby mechanics before accepting.",
+  icon: "💬"
 },
 {
-title:"Mechanic Earnings",
-description:"Mechanics manage jobs, quotes and monthly income.",
-icon:"🛠️"
-}
+  title: "Mechanic Earnings",
+  description: "Mechanics manage jobs, quotes and monthly income.",
+  icon: "🛠️"
+}]
+
+const steps = [
+  "Choose your service and share your location.",
+  "Nearby mechanics receive your request instantly.",
+  "Select a quote and track mechanic arrival."
 ]
 
-const steps=[
-"Choose your service and share your location.",
-"Nearby mechanics receive your request instantly.",
-"Select a quote and track mechanic arrival."
-]
-
-export default function Home(){
-
-useEffect(()=>{
-
-smoothScroll()
-
-/* SCROLL PROGRESS */
-
-window.addEventListener("scroll",()=>{
-const scrolled=window.scrollY/
-(document.body.scrollHeight-window.innerHeight)
-
-document.querySelector(".scroll-progress").style.width=scrolled*100+"%"
-})
-
-/* SCROLL REVEAL */
-
-const observer=new IntersectionObserver((entries)=>{
-entries.forEach((entry)=>{
-
-if(!entry.isIntersecting)return
-
-anime({
-targets:entry.target,
-translateY:[60,0],
-opacity:[0,1],
-duration:900,
-easing:"easeOutExpo"
-})
-
-observer.unobserve(entry.target)
-
-})
-},{threshold:.2})
-
-document.querySelectorAll(".reveal").forEach(el=>{
-observer.observe(el)
-})
-
-/* MAGNETIC BUTTON */
-
-document.querySelectorAll(".btn").forEach(btn=>{
-
-btn.addEventListener("mousemove",(e)=>{
-
-const rect=btn.getBoundingClientRect()
-
-const x=e.clientX-rect.left-rect.width/2
-const y=e.clientY-rect.top-rect.height/2
-
-anime({
-targets:btn,
-translateX:x*.2,
-translateY:y*.2,
-duration:400,
-easing:"easeOutQuad"
-})
-
-})
-
-btn.addEventListener("mouseleave",()=>{
-
-anime({
-targets:btn,
-translateX:0,
-translateY:0,
-duration:400
-})
-
-})
-
-})
-
-},[])
-
-return(
-
-<main className="site-shell">
+export default function Home() {
+  
+  useEffect(() => {
+    
+    smoothScroll()
+    
+    /* SCROLL PROGRESS */
+    
+    window.addEventListener("scroll", () => {
+      const scrolled = window.scrollY /
+        (document.body.scrollHeight - window.innerHeight)
+      
+      document.querySelector(".scroll-progress").style.width = scrolled * 100 + "%"
+    })
+    
+    /* SCROLL REVEAL */
+    
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        
+        if (!entry.isIntersecting) return
+        
+        animate({
+          targets: entry.target,
+          translateY: [60, 0],
+          opacity: [0, 1],
+          duration: 900,
+          easing: "easeOutExpo"
+        })
+        
+        observer.unobserve(entry.target)
+        
+      })
+    }, { threshold: .2 })
+    
+    document.querySelectorAll(".reveal").forEach(el => {
+      observer.observe(el)
+    })
+    
+    /* MAGNETIC BUTTON */
+    
+    document.querySelectorAll(".btn").forEach(btn => {
+      
+      btn.addEventListener("mousemove", (e) => {
+        
+        const rect = btn.getBoundingClientRect()
+        
+        const x = e.clientX - rect.left - rect.width / 2
+        const y = e.clientY - rect.top - rect.height / 2
+        
+        animate({
+          targets: btn,
+          translateX: x * .2,
+          translateY: y * .2,
+          duration: 400,
+          easing: "easeOutQuad"
+        })
+        
+      })
+      
+      btn.addEventListener("mouseleave", () => {
+        
+        animate({
+          targets: btn,
+          translateX: 0,
+          translateY: 0,
+          duration: 400
+        })
+        
+      })
+      
+    })
+    
+  }, [])
+  
+  return (
+    
+    <main className="site-shell">
 
 <div className="scroll-progress"/>
 
@@ -312,15 +311,15 @@ Submit
 </footer>
 
 </main>
-
-)
+    
+  )
 }
 
-function Stat({label,value}){
-
-return(
-
-<div className="stat-card reveal">
+function Stat({ label, value }) {
+  
+  return (
+    
+    <div className="stat-card reveal">
 
 <span className="stat-value">
 {value}
@@ -331,6 +330,6 @@ return(
 </span>
 
 </div>
-
-)
+    
+  )
 }
