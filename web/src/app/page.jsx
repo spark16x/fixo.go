@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { animate } from "animatejs";
+import { animate } from "animejs";
 import Link from "next/link";
 import smoothScroll from "../lib/smoothScroll";
 
