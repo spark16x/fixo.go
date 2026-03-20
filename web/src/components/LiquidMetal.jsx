@@ -4,68 +4,83 @@ import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
 export default function LiquidMetal() {
-  const ref = useRef();
+  const mountRef = useRef();
   
   useEffect(() => {
     const scene = new THREE.Scene();
     
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
+    const camera = new THREE.OrthographicCamera(
+      -1, 1, 1, -1, 0, 1
     );
     
-    const renderer = new THREE.WebGLRenderer({ alpha: true });
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(window.innerWidth, window.innerHeight);
-    ref.current.appendChild(renderer.domElement);
+    mountRef.current.appendChild(renderer.domElement);
     
-    const geometry = new THREE.PlaneGeometry(6, 6, 128, 128);
+    const uniforms = {
+      u_time: { value: 0 },
+      u_mouse: { value: new THREE.Vector2(0.5, 0.5) },
+      u_resolution: {
+        value: new THREE.Vector2(window.innerWidth, window.innerHeight)
+      }
+    };
     
     const material = new THREE.ShaderMaterial({
-      uniforms: { time: { value: 0 } },
+      uniforms,
       
       vertexShader: `
-        uniform float time;
-        varying vec2 vUv;
-
         void main() {
-          vUv = uv;
-          vec3 pos = position;
-
-          pos.z += sin(pos.x * 3.0 + time) * 0.3;
-          pos.z += cos(pos.y * 3.0 + time) * 0.3;
-
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(pos,1.0);
+          gl_Position = vec4(position, 1.0);
         }
       `,
       
       fragmentShader: `
-        uniform float time;
-        varying vec2 vUv;
+        uniform float u_time;
+        uniform vec2 u_mouse;
+        uniform vec2 u_resolution;
+
+        float noise(vec2 p){
+          return sin(p.x)*sin(p.y);
+        }
 
         void main() {
-          float wave = sin(vUv.x * 10.0 + time) * 0.5;
+          vec2 uv = gl_FragCoord.xy / u_resolution;
+
+          float t = u_time * 0.5;
+
+          float n = noise(uv * 6.0 + t);
+
+          float dist = distance(uv, u_mouse);
+
+          float metal = sin(uv.x * 10.0 + n + t)
+                      + cos(uv.y * 10.0 + n);
 
           vec3 color = vec3(
-            0.2 + wave,
-            0.3 + wave * 0.5,
-            0.8
+            0.2 + metal * 0.2,
+            0.3 + metal * 0.3,
+            0.8 + metal * 0.4
           );
 
-          gl_FragColor = vec4(color,0.5);
+          color *= 1.0 - dist;
+
+          gl_FragColor = vec4(color, 1.0);
         }
       `,
-      transparent: true,
     });
     
+    const geometry = new THREE.PlaneGeometry(2, 2);
     const mesh = new THREE.Mesh(geometry, material);
     scene.add(mesh);
     
-    camera.position.z = 3;
+    const onMouseMove = (e) => {
+      uniforms.u_mouse.value.x = e.clientX / window.innerWidth;
+      uniforms.u_mouse.value.y = 1 - e.clientY / window.innerHeight;
+    };
+    
+    window.addEventListener("mousemove", onMouseMove);
     
     const animate = () => {
-      material.uniforms.time.value += 0.02;
+      uniforms.u_time.value += 0.03;
       renderer.render(scene, camera);
       requestAnimationFrame(animate);
     };
@@ -73,18 +88,19 @@ export default function LiquidMetal() {
     animate();
     
     return () => {
+      window.removeEventListener("mousemove", onMouseMove);
       renderer.dispose();
-      ref.current.innerHTML = "";
     };
+    
   }, []);
   
   return (
     <div
-      ref={ref}
+      ref={mountRef}
       style={{
-        position: "absolute",
+        position: "fixed",
         inset: 0,
-        zIndex: -1,
+        zIndex: -1
       }}
     />
   );
