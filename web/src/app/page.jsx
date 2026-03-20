@@ -2,10 +2,8 @@
 
 import { useEffect } from "react";
 import { animate } from "animejs";
-import Link from "next/link";
+import LiquidMetal from "../components/LiquidMetal";
 import smoothScroll from "../lib/smoothScroll";
-import Hero3D from "../components/Hero3D";
-import DispatchMap from "../components/DispatchMap";
 
 export default function Home() {
   
@@ -13,106 +11,123 @@ export default function Home() {
     
     smoothScroll();
     
-    const scrollHandler = () => {
-      const scrolled =
-        window.scrollY /
-        (document.body.scrollHeight - window.innerHeight);
-      
-      const bar = document.querySelector(".scroll-progress");
-      if (bar) bar.style.width = scrolled * 100 + "%";
-    };
-    
-    window.addEventListener("scroll", scrollHandler);
-    
     const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
+      entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         
         animate(entry.target, {
-          translateY: [60, 0],
+          translateY: [80, 0],
           opacity: [0, 1],
-          duration: 900,
-          easing: "easeOutExpo",
+          duration: 1000,
+          easing: "easeOutExpo"
         });
         
         observer.unobserve(entry.target);
       });
     });
     
-    document.querySelectorAll(".reveal").forEach((el) => {
+    document.querySelectorAll(".reveal").forEach(el => {
       observer.observe(el);
     });
-    
-    return () => {
-      window.removeEventListener("scroll", scrollHandler);
-      observer.disconnect();
-    };
     
   }, []);
   
   return (
-    <main className="site-shell">
+    
+    <main>
 
-      <div className="scroll-progress" />
+{/* HERO */}
 
-      <header className="top-nav">
-        <div className="brand">FIXO.GO</div>
-        <div className="nav-actions">
-          <a href="#waitlist" className="btn btn-secondary">Join</a>
-          <Link href="/terms">Terms</Link>
-        </div>
-      </header>
+<section className="hero">
 
-      {/* HERO */}
+<LiquidMetal />
 
-      <section className="hero reveal">
-        <Hero3D />
+<div className="hero-content reveal">
 
-        <h1>Roadside help, reimagined.</h1>
+<p className="tag">🚀 Next-gen roadside platform</p>
 
-        <p className="hero-subtitle">
-          AI-powered dispatch connecting drivers with nearby mechanics instantly.
-        </p>
+<h1>
+Roadside assistance,<br/>
+but actually instant.
+</h1>
 
-        <div className="hero-cta">
-          <a className="btn btn-primary">Get Early Access</a>
-        </div>
-      </section>
+<p className="subtitle">
+AI-powered dispatch connects you to nearby mechanics
+within seconds — not hours.
+</p>
 
-      {/* FEATURES */}
+<div className="cta">
+<button className="btn primary">Join Waitlist</button>
+<button className="btn ghost">See Demo</button>
+</div>
 
-      <section className="section">
-        <h2 className="reveal">Built for scale</h2>
+</div>
 
-        <div className="feature-grid">
-          {["Dispatch", "Tracking", "Quotes", "Earnings"].map((f) => (
-            <div key={f} className="feature-card glass reveal">
-              {f}
-            </div>
-          ))}
-        </div>
-      </section>
+</section>
 
-      {/* AI DISPATCH */}
+{/* FEATURES */}
 
-      <section className="section section-alt">
-        <h2 className="reveal">AI Dispatch Engine</h2>
+<section className="section">
 
-        <div className="glass reveal" style={{ padding: 40 }}>
-          <DispatchMap />
-        </div>
-      </section>
+<h2 className="reveal">Built for speed & reliability</h2>
 
-      {/* CTA */}
+<div className="grid">
 
-      <section className="section">
-        <h2 className="reveal">Never get stranded again</h2>
+{["Instant Dispatch","Live Tracking","Transparent Pricing","Mechanic Growth"]
+.map(f=>(
+<div className="card glass reveal" key={f}>
+<h3>{f}</h3>
+<p>Optimized experience with real-time systems.</p>
+</div>
+))}
 
-        <div className="hero-cta reveal">
-          <button className="btn btn-primary">Join Waitlist</button>
-        </div>
-      </section>
+</div>
 
-    </main>
-  );
+</section>
+
+{/* AI SECTION */}
+
+<section className="section alt">
+
+<h2 className="reveal">AI dispatch engine</h2>
+
+<p className="reveal">
+Smart routing assigns best mechanic instantly.
+</p>
+
+</section>
+
+{/* TRUST */}
+
+<section className="section">
+
+<h2 className="reveal">Why FIXO.GO</h2>
+
+<div className="grid">
+
+<div className="card glass reveal">⚡ Faster than competitors</div>
+<div className="card glass reveal">📍 Real-time tracking</div>
+<div className="card glass reveal">💰 Best pricing</div>
+
+</div>
+
+</section>
+
+{/* CTA */}
+
+<section className="section">
+
+<h2 className="reveal">
+Never get stranded again.
+</h2>
+
+<button className="btn primary reveal">
+Get Early Access
+</button>
+
+</section>
+
+</main>
+    
+  )
 }
