@@ -36,7 +36,7 @@ jobs:
       - name: update all dep
         working-directory: web
         run: |
-         npm install animejs lenis 
+         npm install three @react-three/fiber @react-three/drei 
 
 
       - name: Commit
