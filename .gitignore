@@ -1,0 +1,5 @@
+# Keystore files
+*.jks
+*.keystore
+# Keystore credentials
+key.properties
