@@ -51,14 +51,33 @@ border-radius:10px;
 border:none;
 cursor:pointer;
 transition:.3s;
+color:white;
+outline:2px solid transparent;
+outline-offset:2px;
+}
+
+.btn:focus-visible{
+outline-color:white;
+}
+
+.btn:active{
+transform:scale(0.98);
 }
 
 .primary{
 background:#4f46e5;
 }
 
+.primary:hover{
+background:#4338ca;
+}
+
 .ghost{
 background:rgba(255,255,255,0.08);
+}
+
+.ghost:hover{
+background:rgba(255,255,255,0.12);
 }
 
 /* SECTIONS */
