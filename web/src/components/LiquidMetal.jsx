@@ -16,9 +16,10 @@ export default function LiquidMetal() {
       powerPreference: "high-performance",
     });
     
+    const mountRef = ref.current;
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    ref.current.appendChild(renderer.domElement);
+    mountRef.appendChild(renderer.domElement);
     
     const uniforms = {
       u_time: { value: 0 },
@@ -132,10 +133,11 @@ export default function LiquidMetal() {
     
     window.addEventListener("mousemove", handleMouse);
     
+    let frameId;
     const animate = () => {
       uniforms.u_time.value += 0.02;
       renderer.render(scene, camera);
-      requestAnimationFrame(animate);
+      frameId = requestAnimationFrame(animate);
     };
     
     animate();
@@ -143,8 +145,12 @@ export default function LiquidMetal() {
     // cleanup
     return () => {
       window.removeEventListener("mousemove", handleMouse);
+      // ⚡ Bolt: Prevent memory & CPU leaks by properly disposing Three.js resources and stopping the animation loop on unmount.
+      cancelAnimationFrame(frameId);
+      mesh.geometry.dispose();
+      mesh.material.dispose();
       renderer.dispose();
-      ref.current.innerHTML = "";
+      mountRef.innerHTML = "";
     };
   }, []);
   

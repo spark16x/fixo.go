@@ -10,10 +10,17 @@ export default function smoothScroll() {
     smoothTouch: false
   });
   
+  let frameId;
   function raf(time) {
     lenis.raf(time)
-    requestAnimationFrame(raf)
+    frameId = requestAnimationFrame(raf)
   }
   
-  requestAnimationFrame(raf)
+  frameId = requestAnimationFrame(raf)
+
+  // ⚡ Bolt: Return a cleanup function to prevent memory leaks and redundant animation frames when unmounted.
+  return () => {
+    cancelAnimationFrame(frameId);
+    lenis.destroy();
+  };
 }

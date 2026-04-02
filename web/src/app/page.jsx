@@ -9,7 +9,7 @@ export default function Home() {
   
   useEffect(() => {
     
-    smoothScroll();
+    const destroyScroll = smoothScroll();
     
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
@@ -30,6 +30,10 @@ export default function Home() {
       observer.observe(el);
     });
     
+    return () => {
+      destroyScroll();
+      observer.disconnect();
+    };
   }, []);
   
   return (
