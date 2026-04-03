@@ -1,3 +1,0 @@
-## 2024-05-24 - Uncancelled Animation Frames & Instance Leaks
-**Learning:** React components (`page.jsx`, `LiquidMetal.jsx`) initialize infinite `requestAnimationFrame` loops (for Lenis smooth scrolling and Three.js rendering) but fail to cancel them or destroy the instances on unmount. This leads to severe CPU usage and memory leaks as multiple overlapping loops are created if a user navigates between pages.
-**Action:** Always store the `requestAnimationFrame` ID and call `cancelAnimationFrame` inside the `useEffect` cleanup function. Additionally, ensure heavy instances like `Lenis` and Three.js materials/geometries are properly `destroy()`ed or `dispose()`d on unmount.
