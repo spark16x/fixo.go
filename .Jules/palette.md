@@ -1,0 +1,3 @@
+## 2025-04-03 - [Accessibility] Respect `prefers-reduced-motion` for heavy WebGL and scroll animations
+**Learning:** Heavy WebGL animations (like Three.js shaders) and smooth scroll hijacking can trigger vestibular disorders and cause motion sickness. Screen readers might also attempt to interact with decorative canvas elements if not properly hidden.
+**Action:** Always check `window.matchMedia("(prefers-reduced-motion: reduce)")` before initializing heavy animations or smooth scroll (e.g., Lenis) and abort if `matches` is true. Additionally, apply `aria-hidden="true"` to purely decorative canvas or animation containers.

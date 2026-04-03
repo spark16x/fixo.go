@@ -7,6 +7,9 @@ export default function DispatchMap() {
   const ref = useRef(null);
   
   useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (prefersReducedMotion) return;
+
     const dots = ref.current.querySelectorAll(".dot");
     
     dots.forEach((dot, i) => {
@@ -22,7 +25,7 @@ export default function DispatchMap() {
   }, []);
   
   return (
-    <div className="dispatch-map" ref={ref}>
+    <div className="dispatch-map" ref={ref} aria-hidden="true">
       {Array.from({ length: 12 }).map((_, i) => (
         <span key={i} className="dot" />
       ))}

@@ -7,6 +7,9 @@ export default function LiquidMetal() {
   const ref = useRef();
   
   useEffect(() => {
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (prefersReducedMotion.matches) return;
+
     const scene = new THREE.Scene();
     
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -157,6 +160,7 @@ export default function LiquidMetal() {
   return (
     <div
       ref={ref}
+      aria-hidden="true"
       style={{
         position: "fixed",
         inset: 0,

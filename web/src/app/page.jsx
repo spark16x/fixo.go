@@ -15,12 +15,19 @@ export default function Home() {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         
-        animate(entry.target, {
-          translateY: [80, 0],
-          opacity: [0, 1],
-          duration: 1000,
-          easing: "easeOutExpo"
-        });
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (prefersReducedMotion) {
+          entry.target.style.opacity = 1;
+          entry.target.style.transform = 'translateY(0)';
+        } else {
+          animate(entry.target, {
+            translateY: [80, 0],
+            opacity: [0, 1],
+            duration: 1000,
+            easing: "easeOutExpo"
+          });
+        }
         
         observer.unobserve(entry.target);
       });
