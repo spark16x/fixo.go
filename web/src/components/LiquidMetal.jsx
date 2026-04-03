@@ -133,9 +133,13 @@ export default function LiquidMetal() {
     
     window.addEventListener("mousemove", handleMouse);
     
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
     let frameId;
     const animate = () => {
-      uniforms.u_time.value += 0.02;
+      if (!prefersReducedMotion) {
+        uniforms.u_time.value += 0.02;
+      }
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
