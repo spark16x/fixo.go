@@ -1,11 +1,21 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { animate } from "animejs";
 import LiquidMetal from "../components/LiquidMetal";
 import smoothScroll from "../lib/smoothScroll";
 
 export default function Home() {
+  const [isJoining, setIsJoining] = useState(false);
+  const [hasJoined, setHasJoined] = useState(false);
+
+  const handleJoin = () => {
+    setIsJoining(true);
+    setTimeout(() => {
+      setIsJoining(false);
+      setHasJoined(true);
+    }, 1500);
+  };
   
   useEffect(() => {
     
@@ -61,7 +71,14 @@ within seconds — not hours.
 </p>
 
 <div className="cta">
-<button className="btn primary">Join Waitlist</button>
+<button
+  className="btn primary"
+  onClick={handleJoin}
+  disabled={isJoining || hasJoined}
+  aria-live="polite"
+>
+  {isJoining ? "Joining..." : hasJoined ? "Joined ✓" : "Join Waitlist"}
+</button>
 <button className="btn ghost">See Demo</button>
 </div>
 
@@ -125,8 +142,13 @@ Smart routing assigns best mechanic instantly.
 Never get stranded again.
 </h2>
 
-<button className="btn primary reveal">
-Get Early Access
+<button
+  className="btn primary reveal"
+  onClick={handleJoin}
+  disabled={isJoining || hasJoined}
+  aria-live="polite"
+>
+  {isJoining ? "Joining..." : hasJoined ? "Joined ✓" : "Get Early Access"}
 </button>
 
 </section>

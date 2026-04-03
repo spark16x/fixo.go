@@ -157,6 +157,7 @@ export default function LiquidMetal() {
   return (
     <div
       ref={ref}
+      aria-hidden="true"
       style={{
         position: "fixed",
         inset: 0,
