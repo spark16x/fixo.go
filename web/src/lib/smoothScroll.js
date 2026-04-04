@@ -4,9 +4,11 @@ import Lenis from "lenis";
 
 export default function smoothScroll() {
   
+  const prefersReducedMotion = typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
   const lenis = new Lenis({
     duration: 1.2,
-    smoothWheel: true,
+    smoothWheel: !prefersReducedMotion,
     smoothTouch: false
   });
   
