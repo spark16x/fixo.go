@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function TermsPage() {
   return (
-    <main className="legal-shell">
+    <main id="main-content" className="legal-shell">
       <h1>Terms of Service</h1>
       <p className="legal-updated">Last updated: 2026-03-06</p>
 
