@@ -5,7 +5,7 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="legal-shell">
+    <main id="main-content" className="legal-shell">
       <h1>Privacy Policy</h1>
       <p className="legal-updated">Last updated: 2026-03-06</p>
 

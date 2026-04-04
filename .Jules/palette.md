@@ -1,3 +1,3 @@
-## 2025-04-03 - [Accessibility] Respect `prefers-reduced-motion` for heavy WebGL and scroll animations
-**Learning:** Heavy WebGL animations (like Three.js shaders) and smooth scroll hijacking can trigger vestibular disorders and cause motion sickness. Screen readers might also attempt to interact with decorative canvas elements if not properly hidden.
-**Action:** Always check `window.matchMedia("(prefers-reduced-motion: reduce)")` before initializing heavy animations or smooth scroll (e.g., Lenis) and abort if `matches` is true. Additionally, apply `aria-hidden="true"` to purely decorative canvas or animation containers.
+## 2025-04-03 - Added skip-to-content link for keyboard accessibility
+**Learning:** Next.js layout structures often lack built-in a11y mechanisms for keyboard navigation to bypass repeating layout elements. Screen reader and keyboard users can get stuck traversing common elements.
+**Action:** Implement a reusable, visually-hidden (until focused) skip link pattern in the root `layout.js` that points to a consistent `#main-content` ID on page `<main>` tags.

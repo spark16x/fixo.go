@@ -15,10 +15,10 @@ export default function Home() {
       entries.forEach(entry => {
         if (!entry.isIntersecting) return;
         
-        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
         if (prefersReducedMotion) {
-          entry.target.style.opacity = 1;
+          entry.target.style.opacity = '1';
           entry.target.style.transform = 'translateY(0)';
         } else {
           animate(entry.target, {
@@ -45,7 +45,7 @@ export default function Home() {
   
   return (
     
-    <main>
+    <main id="main-content">
 
 {/* HERO */}
 
