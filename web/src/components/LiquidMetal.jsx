@@ -14,8 +14,9 @@ export default function LiquidMetal() {
     
     const camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
     
+    // ⚡ Bolt: Disable MSAA to save GPU memory and bandwidth, as there are no geometric edges on a full-screen shader quad.
     const renderer = new THREE.WebGLRenderer({
-      antialias: true,
+      antialias: false,
       powerPreference: "high-performance",
     });
     
@@ -129,18 +130,19 @@ export default function LiquidMetal() {
     
     scene.add(mesh);
     
+    // ⚡ Bolt: Use cached resolution uniform to avoid triggering layout thrashing by reading from `window` properties on every mouse move.
     const handleMouse = (e) => {
-      uniforms.u_mouse.value.x = e.clientX / window.innerWidth;
-      uniforms.u_mouse.value.y = 1 - e.clientY / window.innerHeight;
+      uniforms.u_mouse.value.x = e.clientX / uniforms.u_resolution.value.x;
+      uniforms.u_mouse.value.y = 1 - e.clientY / uniforms.u_resolution.value.y;
     };
     
     window.addEventListener("mousemove", handleMouse);
     
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotionQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
 
     let frameId;
     const animate = () => {
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotionQuery.matches) {
         uniforms.u_time.value += 0.02;
       }
       renderer.render(scene, camera);
