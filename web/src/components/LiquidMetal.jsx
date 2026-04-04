@@ -7,8 +7,8 @@ export default function LiquidMetal() {
   const ref = useRef();
   
   useEffect(() => {
-    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    if (prefersReducedMotion.matches) return;
+    const prefersReducedMotionLocal = window.matchMedia("(prefers-reduced-motion: reduce)");
+    if (prefersReducedMotionLocal.matches) return;
 
     const scene = new THREE.Scene();
     
