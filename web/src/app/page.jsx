@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { animate } from "animejs";
-import LiquidMetal from "../components/LiquidMetal";
+import dynamic from "next/dynamic";
 import smoothScroll from "../lib/smoothScroll";
+
+// ⚡ Bolt: Dynamically import LiquidMetal (which loads Three.js) to reduce initial bundle size and speed up page load
+const LiquidMetal = dynamic(() => import("../components/LiquidMetal"), { ssr: false });
 
 export default function Home() {
   const [isJoining, setIsJoining] = useState(false);
