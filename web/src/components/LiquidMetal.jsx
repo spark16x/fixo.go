@@ -136,11 +136,11 @@ export default function LiquidMetal() {
     
     window.addEventListener("mousemove", handleMouse);
     
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotionLocal = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
     let frameId;
     const animate = () => {
-      if (!prefersReducedMotion) {
+      if (!prefersReducedMotionLocal) {
         uniforms.u_time.value += 0.02;
       }
       renderer.render(scene, camera);

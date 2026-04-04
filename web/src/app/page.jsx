@@ -12,7 +12,7 @@ export default function Home() {
   const [isJoining, setIsJoining] = useState(false);
   const [hasJoined, setHasJoined] = useState(false);
 
-  const handleJoin = () => {
+  const handleJoin = (e) => {
     setIsJoining(true);
     setTimeout(() => {
       setIsJoining(false);
@@ -83,8 +83,8 @@ within seconds — not hours.
 <div className="cta">
 <button
   className="btn primary"
-  onClick={handleJoin}
-  disabled={isJoining || hasJoined}
+  onClick={(e) => { if (isJoining || hasJoined) { e.preventDefault(); return; } handleJoin(e); }}
+  aria-disabled={isJoining || hasJoined}
   aria-live="polite"
 >
   {isJoining ? "Joining..." : hasJoined ? "Joined ✓" : "Join Waitlist"}
@@ -154,8 +154,8 @@ Never get stranded again.
 
 <button
   className="btn primary reveal"
-  onClick={handleJoin}
-  disabled={isJoining || hasJoined}
+  onClick={(e) => { if (isJoining || hasJoined) { e.preventDefault(); return; } handleJoin(e); }}
+  aria-disabled={isJoining || hasJoined}
   aria-live="polite"
 >
   {isJoining ? "Joining..." : hasJoined ? "Joined ✓" : "Get Early Access"}
